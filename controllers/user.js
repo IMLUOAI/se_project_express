@@ -1,6 +1,20 @@
-const mongoose = require("mongoose");
+const User = require('../models/user');
 
-const uesrSchema = new mongoose.Schema({
-  name: {},
-  avatar: [],
-});
+module.exports.getUsers = (req, res) => {
+  User.find({})
+  .populate('users')
+  .then(users => res.send({ data: users}))
+  .catch(err => res.status(500).send({message: err.message}));
+}
+module.exports.getUser = (req, res) => {
+  const {userId} = req.body;
+  User.findById({userId})
+  .then(userId => res.send({data: userId}))
+  .catch(err => res.status(500).send({message: err.message}));
+}
+module.exports.createUser = (req,res) => {
+  const {name, avatar, validate} = req.body;
+  User.create({name, avatar, validate})
+  .then(user => res.send({data: user}))
+  .catch(err => res.status(500).send({message: err.message}));
+};
