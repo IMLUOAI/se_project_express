@@ -3,20 +3,28 @@ const ClothingItem = require('../models/clothingItem');
 
 module.exports.getClothingItems = (req, res) => {
   ClothingItem.find({})
-  .then(clothingItems => res.send( {data: clothingItems}))
+  .then(items => res.status(200).json(items))
   .catch( err => res.status(500).send({message: err.message}));
 };
 
 module.exports.createClothingItem = (req, res) => {
-  const {name, imageUrl, owner, likes, createAt, validate} = req.body;
-  ClothingItem.create({name, imageUrl, owner, likes, createAt, validate})
-  .then(clothingItem => res.send({ data: clothingItem}))
+  console.log(req.user._id);
+  const {name, imageUrl, owner, likes, createAt} = req.body;
+  ClothingItem.create({name, imageUrl, owner, likes, createAt})
+  .then(item => res.status(200).json(item))
   .catch(err => res.status(500).send({message: err.message}));
 };
 
 module.exports.deleteClothingItem = (req, res) => {
-  const { clothingItemId } =req.body
-  ClothingItem.findByIdAndDelete({clothingItemId})
-  .then(clothingItemId => res.send({ data: clothingItemId}))
+  const { itemId } =req.params
+  ClothingItem.findByIdAndRemove(itemId)
+  .then( item => {
+    if (!item) {
+      return res.status(404).json({
+        message: "Item not found"
+      });
+    }
+    res.status(200).json({ message: "Item deleted"});
+  })
   .catch(err => res.status(500).send({message: err.message}));
 }

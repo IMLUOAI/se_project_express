@@ -3,7 +3,7 @@ const {getClothingItems, createClothingItem, deleteClothingItem} = require('../c
 
 
 router.get('/', getClothingItems);
-router.delete('/:clothingItemId', deleteClothingItem);
+router.delete('/:itemId', deleteClothingItem);
 
 router.post('/', createClothingItem);
 
