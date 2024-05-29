@@ -2,7 +2,8 @@
   "name": "se-project-express-wtwr",
   "dependencies": {
     "express": "^4.19.2",
-    "mongoose": "^6.6.1"
+    "mongoose": "^6.6.1",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
