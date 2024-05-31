@@ -16,7 +16,7 @@ mongoose
   app.use('/items', require('./routes/clothingItem'));
   app.use ((req,res, next) => {
     req.user = {
-      _id:"665789d0c4d1aea6bd191724"
+      _id:"6657ab4d6ac9b673ed462664"
     };
     next();
   })

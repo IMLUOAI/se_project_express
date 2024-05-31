@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const { SOME_ERROR_CODE } = require("../utils/errors");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -20,5 +21,11 @@ module.exports.createUser = (req,res) => {
   const {name, avatar} = req.body;
   User.create({name, avatar})
   .then(user => res.send({data: user}))
-  .catch(err => res.status(500).send({message: err.message}));
+  .catch((err) => {
+    console.error(err);
+    if (err.name === 'SomeErrorName') {
+      return res.status(SOME_ERROR_CODE).send({ message: "Approciate error message"}); } else {
+       return res.status(500).send({ message: "Internal Server Error"});
+      }
+  })
 };
