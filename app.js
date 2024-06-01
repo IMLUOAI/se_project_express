@@ -2,6 +2,7 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+
 const  PORT  = process.env.PORT || 3001;
 const app = express();
 
@@ -14,9 +15,10 @@ mongoose
   });
   app.use('/users', require('./routes/user'));
   app.use('/items', require('./routes/clothingItem'));
+
   app.use ((req,res, next) => {
     req.user = {
-      _id:"6657ab4d6ac9b673ed462664"
+      _id:"665a7bd0bc741bfaa260672e"
     };
     next();
   })
@@ -26,7 +28,7 @@ mongoose
     })
   })
 app.listen(PORT, () => {
-  console.log("Server is runnning on port ${PORT}");
+  console.log(`Server is runnning on port ${PORT}`);
 });
 
 

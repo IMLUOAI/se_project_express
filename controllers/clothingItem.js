@@ -1,33 +1,64 @@
-
+const mongoose = require('mongoose');
 const ClothingItem = require('../models/clothingItem');
+const {INVALID_ID, NOT_FOUND, INTERNET_SERVER_ERROR} = require('../utils/errors');
 
 module.exports.getClothingItems = (req, res) => {
   ClothingItem.find({})
-  .then(items => res.status(200).json(items))
-  .catch( err => res.status(500).send({message: err.message}));
+  .then(clothingItems => res.status(200).json(clothingItems))
+  .catch( err => res.status(INTERNET_SERVER_ERROR).send({message: 'Internet server errors'}));
 };
 
 module.exports.createClothingItem = (req, res) => {
-  console.log(req.user._id);
-  const {name, weather, imageUrl, owner, likes, createAt} = req.body;
-  ClothingItem.create({name, weather, imageUrl, owner, likes, createAt})
-  .then(item => res.status(200).json(item))
-  .catch(err => res.status(500).send({message: err.message}));
+ if (!req.user || !req.user_id) {
+  return res.status(401).send({message: 'Unauthorized: User ID not found'});
+ }
+  const {name, weather, imageUrl} = req.body;
+  const owner = req.user._id;
+  ClothingItem.create({name, weather, imageUrl, owner})
+  .then(clothingItem => res.send({data: clothingItem}))
+  .catch(err => {
+    if (err.name === 'ValidationError') {
+    return res.status(INVALID_ID).send({ message: "Invalid data passed"}); }
+    console.error('Error with the message ${err.message} has occured while executing the code');
+   res.status(INTERNET_SERVER_ERROR).send({ message: "Internal server error"});});
 };
 
+module.exports.getClothingItemById = (req, res) => {
+  const {itemId} = req.params;
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(INVALID_ID).send({message: 'Invalid item ID'});
+  }
+  ClothingItem.findById(itemId)
+  .orFail(() => {
+    const error = new Error("Item ID not found");
+    error.statusCode = NOT_FOUND;
+    throw error;
+  })
+  .then(item => res.send({ data: item}))
+  .catch(err => {
+    console.error('Error ${err.name} with the message ${err.message} has occured while executing the code ');
+    if (err.statusCode === NOT_FOUND) {
+      return res.status(NOT_FOUND).send({ message: err.message});
+    }
+    res.status(INTERNET_SERVER_ERROR).send({message: 'Internal server error'})
+  })
+}
 module.exports.deleteClothingItem = (req, res) => {
   const { itemId } =req.params
   ClothingItem.findByIdAndRemove(itemId)
-  .then( item => {
+  .orFail()
+  .then( (item)=> {
     if (!item) {
-      return res.status(404).json({
+      return res.status(NOT_FOUND).json({
         message: "Item not found"
       });
     }
-    res.status(200).json({ message: "Item deleted"});
+    res.send(item);
   })
-  .catch(err => res.status(500).send({message: err.message}));
-}
+  .catch((error) => {
+    console.error(`Error ${err.name} with the message ${err.message} has occurred while executing the code`);
+  });
+};
 
 module.exports.likeClothingItem = (req, res) => ClothingItem.findByIdAndUpdate(
   req.params.itemId,

@@ -1,6 +1,7 @@
 {
   "name": "se-project-express-wtwr",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "mongoose": "^6.6.1",
     "validator": "^13.12.0"

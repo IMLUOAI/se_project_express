@@ -1,0 +1,9 @@
+const INVALID_ID = 400;
+const NOT_FOUND = 404;
+const INTERNET_SERVER_ERROR = 500;
+
+module.exports = {
+  INVALID_ID,
+  NOT_FOUND,
+  INTERNET_SERVER_ERROR
+}
