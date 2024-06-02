@@ -20,11 +20,11 @@ module.exports.getUser = (req, res) => {
     res.status(200).json(user);
   })
   .catch(err => {
-    console.error(err);
+    // console.error(err);
     if (err.name === 'CastError') {
       return res.status(INVALID_ID).send({message: "Invalid ID passed"});
-    } else {
-      res.status(INTERNET_SERVER_ERROR).send({message: err.message});}
+    }
+      res.status(INTERNET_SERVER_ERROR).send({message: err.message});
 });
 };
 module.exports.createUser = (req,res) => {
@@ -32,10 +32,10 @@ module.exports.createUser = (req,res) => {
   User.create({name, avatar})
   .then(user => res.send({ data: user }))
   .catch((err) => {
-    console.error(err);
+    // console.error(err);
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: "Invalid data passed"}); }
-      else { res.status(INTERNET_SERVER_ERROR).send({ message: "Internal Server Error"});}
+      res.status(INTERNET_SERVER_ERROR).send({ message: "Internal Server Error"});
 
   });
 };
