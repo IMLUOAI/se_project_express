@@ -1,13 +1,23 @@
-const { BASE_URL } = 'http://localhost:3001';
+const { BASE_URL } = require('./config.js');
 const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { INTERNET_SERVER_ERROR } = require('./utils/errors.js');
+const User = require('./models/user');
 
 const  PORT  = process.env.PORT || 3001;
 const app = express();
-// app.get('/users', (req, res) => {
-//   const userEndpoint = `${BASE_URL}/users`;
-// })
+
+app.get('/users', (req, res) => {
+  User.find({})
+  .then(users => {
+    res.status(200).json(users);
+  })
+  .catch(err => {
+    console.error(`Error fetching users: ${err.message}`);
+    res.status(INTERNET_SERVER_ERROR).send({message: 'Internal server error'});
+  })
+})
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 mongoose
@@ -18,7 +28,7 @@ mongoose
   app.use('/users', require('./routes/user'));
   app.use('/items', require('./routes/clothingItem'));
 
-  app.use ((req,BASE_URL, next) => {
+  app.use ((req, _, next) => {
     req.user = {
       _id:"665c9ff5f6211d5872dcedb3"
     };
