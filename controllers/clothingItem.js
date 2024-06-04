@@ -13,25 +13,20 @@ module.exports.getClothingItems = (req, res) => {
 
 module.exports.createClothingItem = (req, res) => {
  if (!req.user || !req.user._id) {
-  return res.status(401).send({message: 'Unauthorized: User ID not found'});
+  return res.status(INVALID_ID).send({message: 'Unauthorized: User ID not found '});
  }
   const {name, weather, imageUrl} = req.body;
   const owner = req.user._id;
 
-  if (!name || typeof name !== 'string' || name.length < 2 || name.length > 30) {
-    return res.status(400).send({message: 'Invalid name field'})
+  if (!name || !weather || !imageUrl) {
+    return res.status(INVALID_ID).send({message: 'name, weather, and imageUrl are required'});
   }
-  if (!weather || typeof weather !== 'string' ) {
-    return res.status(400).send({message: 'Invalid weather field'})
-  }
-  if (!imageUrl || !isValidUrl(imageUrl)) {
-    return res.status(400).send({message: 'Invalid imageUrl field'})
-  }
+
 
     ClothingItem.create({name, weather, imageUrl, owner})
   .then(clothingItem => res.status(201).send({data: clothingItem}))
   .catch(err => {
-    console.error('Error with the message ${err.message} has occured while executing the code');
+    console.error(`Error creating clothing item by ID: ${err.message}`);
     if (err.name === 'ValidationError') {
     return res.status(INVALID_ID).send({ message: "Invalid data passed"}); }
    res.status(INTERNET_SERVER_ERROR).send({ message: "Internal server error"});
@@ -62,18 +57,24 @@ module.exports.getClothingItemById = (req, res) => {
 }
 module.exports.deleteClothingItem = (req, res) => {
   const { itemId } =req.params
+
+   if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(INVALID_ID).send({message: 'Invalid item ID'});
+  }
+
   ClothingItem.findByIdAndRemove(itemId)
-  .orFail()
-  .then( (item)=> {
-    if (!item) {
-      return res.status(NOT_FOUND).json({
-        message: 'Item not found'
-      });
-    }
-    res.send(item);
+  .orFail(() => {
+    const error = new Error('Item  not found');
+    error.statusCode = NOT_FOUND;
+    throw error;
   })
+  .then((item)=>
+    res.send(item))
   .catch((err) => {
     console.error(`Error deleting clothing item: ${err.message}`);
+    if (err.statusCode === NOT_FOUND ) {
+      return res.status(NOT_FOUND).send({message: 'Item not found'});
+    }
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: "Invalid data passed"});
   }
@@ -82,17 +83,32 @@ module.exports.deleteClothingItem = (req, res) => {
 };
 
 module.exports.likeClothingItem = (req, res) => {
+  const itemId = req.params.itemId;
+
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    console.error(`Invalid item ID: ${itemId}`);
+    return res.status(INVALID_ID).send({message: 'Invalid item ID'});
+  }
+
   ClothingItem.findByIdAndUpdate(
-  req.params.itemId,
+  itemId,
   {$addToSet: { likes: req.user._id}},
   {new: true},
 )
-.then(item => res.send(item))
+.orFail(() => {
+  const error = new Error('Item not found');
+  error.statusCode = NOT_FOUND;
+  throw error;
+})
+.then(item => res.status(200).send(item))
 .catch((err) => {
   console.error(`Error liking clothing item: ${err.message}`);
+  if (err.statusCode === NOT_FOUND ) {
+    return res.status(NOT_FOUND).send({ message: "Item not found"});
+  }
   if (err.name === 'ValidationError') {
     return res.status(INVALID_ID).send({ message: "Invalid data passed"});
-  }
+}
   res.status(INTERNET_SERVER_ERROR).send({message: 'internal server error '});
 });
 }
@@ -113,11 +129,3 @@ module.exports.dislikeClothingItem = (req, res) => {
 });
 }
 
-const isValidUrl = (urlString) => {
-  try {
-    new URL(urlString);
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
