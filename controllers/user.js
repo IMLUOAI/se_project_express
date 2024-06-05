@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const User = require('../models/user');
-const { INVALID_ID, NOT_FOUND, INTERNET_SERVER_ERROR } = require("../utils/errors");
+const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require("../utils/errors");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
   .then(users => res.send({ data: users }))
-  .catch(err => res.status(INTERNET_SERVER_ERROR).send({message: err.message}));
+  .catch(err => res.status(INTERNAL_SERVER_ERROR).send({message: err.message}));
 }
 module.exports.getUser = (req, res) => {
   const { userId } = req.params;
@@ -13,6 +13,11 @@ module.exports.getUser = (req, res) => {
     return res.status(INVALID_ID).send({ message: 'Invalid ID passed'});
   }
   User.findById(userId)
+  .orFail(() => {
+    const error = new Error('User ID not found');
+    error.statusCode = NOT_FOUND;
+    throw error;
+  })
   .then(user => {
     if (!user) {
       return res.status(NOT_FOUND).json({message: 'User not found'});
@@ -24,7 +29,7 @@ module.exports.getUser = (req, res) => {
     if (err.name === 'CastError') {
       return res.status(INVALID_ID).send({message: 'Invalid ID passed'});
     }
-      res.status(INTERNET_SERVER_ERROR).send({message: err.message});
+      res.status(INTERNAL_SERVER_ERROR).send({message: err.message});
 });
 };
 module.exports.createUser = (req,res) => {
@@ -35,7 +40,7 @@ module.exports.createUser = (req,res) => {
     console.error(err);
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: 'Invalid data passed'}); }
-      res.status(INTERNET_SERVER_ERROR).send({ message: 'Internal Server Error'});
+      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error'});
 
   });
 };

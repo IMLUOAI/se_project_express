@@ -13,9 +13,9 @@ module.exports.getClothingItems = (req, res) => {
 
 
 module.exports.createClothingItem = (req, res) => {
- if (!req.user || !req.user._id) {
-  return res.status(INVALID_ID).send({message: 'Unauthorized: User ID not found '});
- }
+//  if (!req.user || !req.user._id) {
+//   return res.status(INVALID_ID).send({message: 'Unauthorized: User ID not found '});
+//  }
   const {name, weather, imageUrl} = req.body;
   const owner = req.user._id;
 
