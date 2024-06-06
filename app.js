@@ -18,23 +18,24 @@ app.get('/users', (req, res) => {
     res.status(INTERNET_SERVER_ERROR).send({message: 'Internal server error'});
   })
 })
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-mongoose
-  .connect("mongodb://127.0.0.1:27017/wtwr_db", {
+
+mongoose .connect("mongodb://127.0.0.1:27017/wtwr_db", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+  });
 
-  });
-  app.use ((req, _, next) => {
-    req.user = {
-      _id:"665c9ff5f6211d5872dcedb3"
-    };
-    next();
-  });
+app.use ((req, _, next) => {
+  req.user = {
+    _id:"665c9ff5f6211d5872dcedb3"
+  };
+  next();
+});
+
   app.use('/users', require('./routes/user'));
   app.use('/items', require('./routes/clothingItem'));
-
 
   app.use( (_, res) => {
     res.status(404).json ({

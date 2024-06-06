@@ -10,7 +10,7 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUser = (req, res) => {
   const { userId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(INVALID_ID).send({ message: 'Invalid ID passed'});
+    return res.status(INVALID_ID).send({ message: 'Invalid data passed'});
   }
   User.findById(userId)
   .orFail(() => {
@@ -18,16 +18,11 @@ module.exports.getUser = (req, res) => {
     error.statusCode = NOT_FOUND;
     throw error;
   })
-  .then(user => {
-    if (!user) {
-      return res.status(NOT_FOUND).json({message: 'User not found'});
-    }
-    res.status(200).json(user);
-  })
+  .then(user => res.status(200).json(user))
   .catch(err => {
-    console.error(err);
-    if (err.name === 'CastError') {
-      return res.status(INVALID_ID).send({message: 'Invalid ID passed'});
+    console.error(`Error fetching user: ${err.message}`);
+    if (err.statusCode === NOT_FOUND) {
+      return res.status(NOT_FOUND).send({message: 'User not found'});
     }
       res.status(INTERNAL_SERVER_ERROR).send({message: err.message});
 });
@@ -35,7 +30,7 @@ module.exports.getUser = (req, res) => {
 module.exports.createUser = (req,res) => {
   const {name, avatar} = req.body;
   User.create({name, avatar})
-  .then(user => res.send({ data: user }))
+  .then(user => res.status(200).send({ data: user }))
   .catch((err) => {
     console.error(err);
     if (err.name === 'ValidationError') {

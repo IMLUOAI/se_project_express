@@ -1,17 +1,18 @@
 const router = require('express').Router();
 const {getClothingItems, getClothingItemById, createClothingItem, deleteClothingItem, likeClothingItem, dislikeClothingItem} = require('../controllers/clothingItem');
+const { NOT_FOUND } = require('../utils/errors');
 
 
 router.get('/', getClothingItems);
 router.get('/:itemId', getClothingItemById )
 router.delete('/:itemId', deleteClothingItem);
-router.put('/items/:itemId/likes', likeClothingItem);
-router.delete('/items/:itemId/likes', dislikeClothingItem);
+router.put('/:itemId/likes', likeClothingItem);
+router.delete('/:itemId/likes', dislikeClothingItem);
 router.post('/', createClothingItem);
 
 
-router.use ((req, res) => {
-  res.status(404).json({
+router.use ((_, res) => {
+  res.status(NOT_FOUND).json({
     message: "Requested resource not found"
   })
 })
