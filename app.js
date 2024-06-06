@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const { INTERNET_SERVER_ERROR } = require('./utils/errors.js');
+const { INTERNAL_SERVER_ERROR } = require('./utils/errors');
 const User = require('./models/user');
 
 const  PORT  = process.env.PORT || 3001;
@@ -12,9 +12,9 @@ app.get('/users', (req, res) => {
   .then(users => {
     res.status(200).json(users);
   })
-  .catch(err => {
-    console.error(`Error fetching users: ${err.message}`);
-    res.status(INTERNET_SERVER_ERROR).send({message: 'Internal server error'});
+  .catch(() => {
+    // console.error(`Error fetching users: ${err.message}`);
+    res.status(INTERNAL_SERVER_ERROR).send({message: 'Internal server error'});
   })
 })
 
@@ -42,7 +42,7 @@ app.use ((req, _, next) => {
     })
   })
 app.listen(PORT, () => {
-  console.log(`Server is runnning on port ${PORT}`);
+  // console.log(`Server is runnning on port ${PORT}`);
 });
 
 

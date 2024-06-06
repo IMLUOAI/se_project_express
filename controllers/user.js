@@ -12,7 +12,7 @@ module.exports.getUser = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(INVALID_ID).send({ message: 'Invalid data passed'});
   }
-  User.findById(userId)
+ return  User.findById(userId)
   .orFail(() => {
     const error = new Error('User ID not found');
     error.statusCode = NOT_FOUND;
@@ -20,22 +20,22 @@ module.exports.getUser = (req, res) => {
   })
   .then(user => res.status(200).json(user))
   .catch(err => {
-    console.error(`Error fetching user: ${err.message}`);
+    // console.error(`Error fetching user: ${err.message}`);
     if (err.statusCode === NOT_FOUND) {
       return res.status(NOT_FOUND).send({message: 'User not found'});
     }
-      res.status(INTERNAL_SERVER_ERROR).send({message: err.message});
+      return res.status(INTERNAL_SERVER_ERROR).send({message: err.message});
 });
 };
 module.exports.createUser = (req,res) => {
   const {name, avatar} = req.body;
   User.create({name, avatar})
   .then(user => res.status(200).send({ data: user }))
-  .catch((err) => {
-    console.error(err);
+  .catch(err => {
+    // console.error(err);
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: 'Invalid data passed'}); }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error'});
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error'});
 
   });
 };
