@@ -11,9 +11,4 @@ router.delete('/:itemId/likes', dislikeClothingItem);
 router.post('/', createClothingItem);
 
 
-router.use ((_, res) => {
-  res.status(NOT_FOUND).json({
-    message: "Requested resource not found"
-  })
-})
 module.exports = router;

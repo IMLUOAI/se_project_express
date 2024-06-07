@@ -1,22 +1,11 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const { INTERNAL_SERVER_ERROR } = require('./utils/errors');
+const { INTERNAL_SERVER_ERROR, NOT_FOUND } = require('./utils/errors');
 const User = require('./models/user');
-
 const  PORT  = process.env.PORT || 3001;
 const app = express();
 
-app.get('/users', (req, res) => {
-  User.find({})
-  .then(users => {
-    res.status(200).json(users);
-  })
-  .catch(() => {
-    // console.error(`Error fetching users: ${err.message}`);
-    res.status(INTERNAL_SERVER_ERROR).send({message: 'Internal server error'});
-  })
-})
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -37,7 +26,7 @@ app.use ((req, _, next) => {
   app.use('/items', require('./routes/clothingItem'));
 
   app.use( (_, res) => {
-    res.status(404).json ({
+    res.status(NOT_FOUND).json ({
       message: 'Resources not found'
     })
   })
@@ -45,4 +34,12 @@ app.listen(PORT, () => {
   // console.log(`Server is runnning on port ${PORT}`);
 });
 
-
+// app.get('/users', (req, res) => {
+//   User.find({})
+//   .then(users => {
+//     res.status(200).json(users);
+//   })
+//   .catch(() => {
+//     res.status(INTERNAL_SERVER_ERROR).send({message: 'Internal server error'});
+//   })
+// })

@@ -5,8 +5,9 @@ const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require("../utils/error
 module.exports.getUsers = (req, res) => {
   User.find({})
   .then(users => res.send({ data: users }))
-  .catch(err => res.status(INTERNAL_SERVER_ERROR).send({message: err.message}));
+  .catch(err => res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'}));
 }
+
 module.exports.getUser = (req, res) => {
   const { userId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -20,11 +21,10 @@ module.exports.getUser = (req, res) => {
   })
   .then(user => res.status(200).json(user))
   .catch(err => {
-    // console.error(`Error fetching user: ${err.message}`);
     if (err.statusCode === NOT_FOUND) {
       return res.status(NOT_FOUND).send({message: 'User not found'});
     }
-      return res.status(INTERNAL_SERVER_ERROR).send({message: err.message});
+      return res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'});
 });
 };
 module.exports.createUser = (req,res) => {
@@ -32,10 +32,9 @@ module.exports.createUser = (req,res) => {
   User.create({name, avatar})
   .then(user => res.status(200).send({ data: user }))
   .catch(err => {
-    // console.error(err);
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: 'Invalid data passed'}); }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error'});
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
 
   });
 };
