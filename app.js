@@ -1,8 +1,9 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const { INTERNAL_SERVER_ERROR, NOT_FOUND } = require('./utils/errors');
-const User = require('./models/user');
+const { NOT_FOUND } = require('./utils/errors');
+
+
 const  PORT  = process.env.PORT || 3001;
 const app = express();
 
@@ -33,13 +34,3 @@ app.use ((req, _, next) => {
 app.listen(PORT, () => {
   // console.log(`Server is runnning on port ${PORT}`);
 });
-
-// app.get('/users', (req, res) => {
-//   User.find({})
-//   .then(users => {
-//     res.status(200).json(users);
-//   })
-//   .catch(() => {
-//     res.status(INTERNAL_SERVER_ERROR).send({message: 'Internal server error'});
-//   })
-// })

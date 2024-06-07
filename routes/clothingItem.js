@@ -1,7 +1,5 @@
 const router = require('express').Router();
 const {getClothingItems, getClothingItemById, createClothingItem, deleteClothingItem, likeClothingItem, dislikeClothingItem} = require('../controllers/clothingItem');
-const { NOT_FOUND } = require('../utils/errors');
-
 
 router.get('/', getClothingItems);
 router.get('/:itemId', getClothingItemById )

@@ -15,7 +15,7 @@ In this project, we also throught the ACTION button on Github to double check we
 
 `npm run dev` — to launch the server with the hot reload feature
 
-### Error Testing Tool
+### Error Handling Testing Tool
 
 postman
 

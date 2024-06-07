@@ -5,7 +5,7 @@ const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require("../utils/error
 module.exports.getUsers = (req, res) => {
   User.find({})
   .then(users => res.send({ data: users }))
-  .catch(err => res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'}));
+  .catch(() => res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'}));
 }
 
 module.exports.getUser = (req, res) => {
