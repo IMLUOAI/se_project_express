@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/user');
-const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require("../utils/errors");
+const jwt = require('jsonwebtoken');
+const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR, MONGODB_DUPLICATE_ERROR } = require("../utils/errors");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -28,8 +29,13 @@ module.exports.getUser = (req, res) => {
 });
 };
 module.exports.createUser = (req,res) => {
-  const {name, avatar} = req.body;
-  User.create({name, avatar})
+  const {name, avatar, email, password} = req.body;
+  User.create({name, avatar, email, password})
+  .orFail(() => {
+    const error = new Error ('item duplicate error');
+    error.statusCode = MONGODB_DUPLICATE_ERROR;
+    throw error;
+      })
   .then(user => res.status(200).send({ data: user }))
   .catch(err => {
     if (err.name === 'ValidationError') {
@@ -38,3 +44,26 @@ module.exports.createUser = (req,res) => {
 
   });
 };
+
+// module.exports.createUser = (req, res) => {
+//   const {email, password} = req.body;
+//   User.create({email, password})
+
+// }
+
+module.exports.login = (req, res) => {
+  const {email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+  .then((user) => {
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    })
+    res.send({token});
+  })
+  .catch((err) => {
+    res
+    .status(401)
+    .send({message:err.message})
+  })
+}
