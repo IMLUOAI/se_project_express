@@ -2,7 +2,17 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR, MONGODB_DUPLICATE_ERROR } = require("../utils/errors");
+const { JWT_SECRET } = require('../utils/config');
 
+const handleError = (err, res) => {
+  if (err.statusCode === NOT_FOUND) {
+    return res.status(NOT_FOUND).send({ message: err.message });
+  }
+  if (err.statusCode === MONGODB_DUPLICATE_ERROR) {
+    return res.status(MONGODB_DUPLICATE_ERROR).send({ message: 'Duplicate data error'})
+  }
+  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
+}
 module.exports.getUsers = (req, res) => {
   User.find({})
   .then(users => res.send({ data: users }))
@@ -21,24 +31,30 @@ module.exports.getUser = (req, res) => {
     throw error;
   })
   .then(user => res.status(200).json(user))
-  .catch(err => {
-    if (err.statusCode === NOT_FOUND) {
-      return res.status(NOT_FOUND).send({message: 'User not found'});
-    }
-      return res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'});
-});
+  .catch(err => handleError(err, res));
 };
 
 module.exports.getCurrentUser = (req, res) => {
-const { user } = req.body;
-    User.findById(req.user._id);
+    User.findById(req.user._id)
+    .then (user => {
+      if (!user) {
+        return res.status(NOT_FOUND).send({ message: 'User not found'});
+      }
+      return res.status(200).send({data: user});
+    })
+   .catch(() =>  res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'}));
+  }
+
+module.exports.updateCurrentUser = (req, res) => {
+   const { name, avatar } = req.body;
+   User.fingByIdAndUpdate(req.user._id, { name, avatar }, { new: true, runvalidators: true })
+   .then(user => {
     if (!user) {
       return res.status(NOT_FOUND).send({ message: 'User not found'});
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
-  }
-module.exports.updateCurrentUser = (req, res) => {
-
+    return res.status(200).send({ data: user })
+   })
+   .catch(err => handleError(err, res));
 }
 
 module.exports.createUser = (req,res) => {
@@ -58,11 +74,6 @@ module.exports.createUser = (req,res) => {
   });
 };
 
-// module.exports.createUser = (req, res) => {
-//   const {email, password} = req.body;
-//   User.create({email, password})
-
-// }
 
 module.exports.login = (req, res) => {
   const {email, password } = req.body;

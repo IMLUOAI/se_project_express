@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const validator = require('validator');
 
-const {ObjectId} = mongoose.Schema.Types;
+const { ObjectId } = mongoose.Schema.Types;
+
 const clothingItemSchema = new mongoose.Schema({
     name: {
       type: String,
@@ -31,7 +32,7 @@ const clothingItemSchema = new mongoose.Schema({
       ref: 'User',
       default: []
       }],
-    createAt: {
+    createdAt: {
      type: Date,
      default: Date.now
     },
