@@ -28,6 +28,19 @@ module.exports.getUser = (req, res) => {
       return res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'});
 });
 };
+
+module.exports.getCurrentUser = (req, res) => {
+const { user } = req.body;
+    User.findById(req.user._id);
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: 'User not found'});
+    }
+    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
+  }
+module.exports.updateCurrentUser = (req, res) => {
+
+}
+
 module.exports.createUser = (req,res) => {
   const {name, avatar, email, password} = req.body;
   User.create({name, avatar, email, password})
