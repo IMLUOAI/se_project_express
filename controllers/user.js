@@ -6,8 +6,11 @@ const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR, MONGODB_DUPLICATE_ERROR, U
 const { JWT_SECRET } = require('../utils/config');
 
 const handleError = (err, res) => {
-  if (err.statusCode ) {
-    return res.status(err.statusCode).send({ message: err.message });
+  if (err.statusCode === NOT_FOUND ) {
+    return res.status(NOT_FOUND).send({ message: err.message });
+  }
+  if (err.statusCode === MONGODB_DUPLICATE_ERROR || err.code === 11000) {
+    return res.status(409).send({ message: 'Eamil already exists' });
   }
   return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
 }
@@ -70,11 +73,9 @@ bcrypt.hash(password, 10)
     res.status(201).send({ data: userResponse })
   })
   .catch(err => {
+    console.error('Create user error:', err);
     if (err.name === 'ValidationError') {
       return res.status(INVALID_ID).send({ message: 'Invalid data passed'});
-    }
-    if (err.code === 11000) {
-    return res.status(MONGODB_DUPLICATE_ERROR).send({ message: 'Email already exists'});
     }
     return handleError(err, res);
   });
@@ -93,6 +94,7 @@ module.exports.login = (req, res) => {
   res.send({token});
  })
 .catch(err => {
+  console.error('Login error:', err);
     return res.status(UNAUTHORIZED).send({ message: err.message });
     })
 }

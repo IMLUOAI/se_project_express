@@ -5,7 +5,7 @@ const {UNAUTHORIZED} = require('../utils/errors');
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
 
-  if (!authorization || typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) {
+  if (!authorization  || !authorization.startsWith('Bearer ')) {
     return res
        .status(UNAUTHORIZED)
        .send({ message: 'Authorization required' })
@@ -16,11 +16,12 @@ let payload;
 try {
   payload = jwt.verify(token, JWT_SECRET);
 } catch (err) {
+  console.error('Token verification failed:', err);
   return res
   .status(UNAUTHORIZED)
   .send({ message: 'Authorization required' })
 }
 req.user = payload;
 
-next();
+return next();
 }
