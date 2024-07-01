@@ -5,8 +5,8 @@ const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/error
 
 
 const handleError = (err, res) => {
-  if (err.statusCode === NOT_FOUND) {
-    return res.status(NOT_FOUND).send({ message: err.message });
+  if (err.statusCode) {
+    return res.status(err.statusCode).send({ message: err.message });
   }
   return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
 }
@@ -14,9 +14,7 @@ const handleError = (err, res) => {
 module.exports.getClothingItems = (req, res) => {
     ClothingItem.find({})
   .then(clothingItems => res.status(200).json(clothingItems))
-  .catch(() => {
-    res.status(INTERNAL_SERVER_ERROR).send({message: 'An error has occured on the server'});
-  });
+  .catch(err => handleError(err, res));
 };
 
 
@@ -32,15 +30,16 @@ module.exports.createClothingItem = (req, res) => {
   .then(clothingItem => res.status(201).send({data: clothingItem}))
   .catch(err => {
     if (err.name === 'ValidationError') {
-    return res.status(INVALID_ID).send({ message: "Invalid data passed"}); }
-  return  res.status(INTERNAL_SERVER_ERROR).send({ message: "An error has occured on the server"});
+    return res.status(INVALID_ID).send({ message: "Invalid data passed"});
+  }
+  return handleError(err, res);
   });
 };
 
 module.exports.getClothingItemById = (req, res) => {
   const { itemId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return res.status(NOT_FOUND).send({message: 'User ID not found'});
+    return res.status(INVALID_ID).send({message: 'Invalid item ID'});
   }
 
   return  ClothingItem.findById(itemId)
@@ -98,7 +97,7 @@ module.exports.dislikeClothingItem = (req, res) => {
   }
  return  ClothingItem.findByIdAndUpdate(
   itemId,
-  {$pull: {likes: req.user._id}},
+  {$pull: { likes: req.user._id }},
   {new: true},
 )
 
