@@ -1,15 +1,10 @@
 const mongoose = require('mongoose');
 const ClothingItem = require('../models/clothingItem');
-const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR } = require('../utils/errors');
+const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } = require('../utils/errors');
+const { handleError } = require('../utils/handleError');
 
 
 
-const handleError = (err, res) => {
-  if (err.statusCode) {
-    return res.status(err.statusCode).send({ message: err.message });
-  }
-  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
-}
 
 module.exports.getClothingItems = (req, res) => {
     ClothingItem.find({})
@@ -53,6 +48,7 @@ module.exports.getClothingItemById = (req, res) => {
 }
 module.exports.deleteClothingItem = (req, res) => {
   const { itemId } = req.params
+  const userId = req.user._id;
 
    if (!mongoose.Types.ObjectId.isValid(itemId)) {
     return res.status(INVALID_ID).send({message: 'Invalid item ID'});
@@ -62,6 +58,14 @@ module.exports.deleteClothingItem = (req, res) => {
     const error = new Error('Item  not found');
     error.statusCode = NOT_FOUND;
     throw error;
+  })
+  .then(item => {
+    if (item.owner.toString() !== userId) {
+      const error = new Error('Forbidden');
+      error.statusCode = FORBIDDEN;
+      throw error;
+    }
+    return ClothingItem.findByIdAndRemove(itemId)
   })
   .then((item)=>
     res.status(200).send(item))
@@ -86,7 +90,7 @@ module.exports.likeClothingItem = (req, res) => {
   throw error;
 })
 .then(item => res.status(200).send(item))
-.catch(err => handleError(err. res));
+.catch(err => handleError(err, res));
 }
 
 module.exports.dislikeClothingItem = (req, res) => {

@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../utils/config');
 const {UNAUTHORIZED} = require('../utils/errors');
 
-module.exports = (req, res, next) => {
+module.exports.auth = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization  || !authorization.startsWith('Bearer ')) {
@@ -22,6 +22,5 @@ try {
   .send({ message: 'Authorization required' })
 }
 req.user = payload;
-
-return next();
+  next();
 }

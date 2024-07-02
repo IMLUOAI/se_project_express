@@ -4,16 +4,9 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const { INVALID_ID, NOT_FOUND, INTERNAL_SERVER_ERROR, MONGODB_DUPLICATE_ERROR, UNAUTHORIZED } = require("../utils/errors");
 const { JWT_SECRET } = require('../utils/config');
+const { handleError } = require('../utils/handleError');
 
-const handleError = (err, res) => {
-  if (err.statusCode === NOT_FOUND ) {
-    return res.status(NOT_FOUND).send({ message: err.message });
-  }
-  if (err.statusCode === MONGODB_DUPLICATE_ERROR || err.code === 11000) {
-    return res.status(409).send({ message: 'Eamil already exists' });
-  }
-  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
-}
+
 module.exports.getUsers = (req, res) => {
   User.find({})
   .then(users => res.send({ data: users }))
@@ -46,9 +39,22 @@ module.exports.getCurrentUser = (req, res) => {
    .catch(() =>  res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'}));
   }
 
-module.exports.updateCurrentUser = (req, res) => {
-   const { name, avatar } = req.body;
-   User.findByIdAndUpdate(req.user._id, { name, avatar }, { new: true, runvalidators: true })
+module.exports.updateCurrentUser = async (req, res) => {
+   const { name, avatar, email, password } = req.body;
+
+   const updateData = { name, avatar, email };
+
+   if (password) {
+    try {
+    const hashedPassword = bcrypt.hash(password, 10);
+    updateData.password = hashedPassword;
+   } catch (err) {
+    console.error(err);
+    return res. status(INTERNAL_SERVER_ERROR).send({ message: 'Error hashing password' });
+   }
+  }
+
+   User.findByIdAndUpdate(req.user._id, updateData, { new: true, runValidators: true })
    .then(user => {
     if (!user) {
       return res.status(NOT_FOUND).send({ message: 'User not found'});
@@ -59,13 +65,13 @@ module.exports.updateCurrentUser = (req, res) => {
 }
 
 module.exports.createUser = (req,res) => {
-  const {name, avatar, email, password} = req.body;
+  const { name, avatar, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(INVALID_ID).send({ message: 'Name, email, password are required'});
   }
 bcrypt.hash(password, 10)
 .then((hashedPassword) => {
-  return User.create({name, avatar, email, password: hashedPassword})
+  return User.create({ name, avatar, email, password: hashedPassword })
 })
   .then(user => {
     const userResponse = user.toObject();
@@ -75,7 +81,7 @@ bcrypt.hash(password, 10)
   .catch(err => {
     console.error('Create user error:', err);
     if (err.name === 'ValidationError') {
-      return res.status(INVALID_ID).send({ message: 'Invalid data passed'});
+      return res.status(INVALID_ID).send({ message: 'Invalid data passed' });
     }
     return handleError(err, res);
   });
@@ -91,13 +97,12 @@ module.exports.login = (req, res) => {
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
     expiresIn: "7d",
   })
-  res.send({token});
+  res.send({ token });
  })
 .catch(err => {
   console.error('Login error:', err);
     return res.status(UNAUTHORIZED).send({ message: err.message });
     })
 }
-
 
 

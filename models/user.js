@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     type:String,
     required: true,
     unique: true,
+    match: [/^\S+@\S+\.\S+$/, 'You must enter a valid email'],
     validate: {
       validator: (value) => validator.isEmail(value),
       message: 'You must enter a valid email',
