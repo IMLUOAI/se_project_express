@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { NOT_FOUND, INTERNAL_SERVER_ERROR } = require('./utils/errors');
 const { createUser, login } = require('./controllers/user');
-// const auth = require('./middlewares/auth');
+const auth = require('./middlewares/auth');
 const cors = require("cors");
 
 
@@ -22,8 +22,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/signin', login);
 app.post('/signup', createUser);
-app.use('/users', require('./routes/user'));
-app.use('/items', require('./routes/clothingItem'));
+app.use('/users', auth, require('./routes/user'));
+app.use('/items', auth, require('./routes/clothingItem'));
 
 
 app.use((_, res) => {
@@ -31,14 +31,6 @@ app.use((_, res) => {
     message: 'Resource not found'
   });
 });
-
-// app.use( (err, req, res, next) => {
-//   const { statusCode = INTERNAL_SERVER_ERROR, message } = err;
-//     res.status(statusCode).json ({
-//       message: statusCode === INTERNAL_SERVER_ERROR ? 'Internal server error' : message
-//     });
-//   })
-
 
 app.listen(PORT, () => {
   console.log(`Server is runnning on port ${PORT}`);
