@@ -67,7 +67,7 @@ module.exports.deleteClothingItem = (req, res) => {
       throw error;
     })
     .then((item) => {
-      if (item.owner.toString()) {
+      if (item.owner.toString() !== userId) {
         const error = new Error("Forbidden");
         error.statusCode = FORBIDDEN;
         throw error;

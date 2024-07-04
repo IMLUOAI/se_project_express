@@ -12,6 +12,8 @@ const {
 const { JWT_SECRET } = require("../utils/config");
 const { handleError } = require("../utils/handleError");
 
+// getUsers
+
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
@@ -21,6 +23,8 @@ module.exports.getUsers = (req, res) => {
         .send({ message: "An error has occured on the server" })
     );
 };
+
+// getUser
 
 module.exports.getUser = (req, res) => {
   const { userId } = req.params;
@@ -37,6 +41,8 @@ module.exports.getUser = (req, res) => {
     .catch((err) => handleError(err, res));
 };
 
+// getCurrentUser
+
 module.exports.getCurrentUser = (req, res) => {
   User.findById(req.user._id)
     .then((user) => {
@@ -51,6 +57,8 @@ module.exports.getCurrentUser = (req, res) => {
         .send({ message: "An error has occured on the server" })
     );
 };
+
+//updateCurrentUser
 
 module.exports.updateCurrentUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -95,7 +103,7 @@ module.exports.createUser = (req, res) => {
     .then((existingUser) => {
       if (existingUser) {
         const error = new Error("User already exists");
-        error.statusCode(MONGODB_DUPLICATE_ERROR);
+        error.statusCode = MONGODB_DUPLICATE_ERROR;
         throw error;
       }
       return bcrypt.hash(password, 10);
@@ -120,6 +128,8 @@ module.exports.createUser = (req, res) => {
       return handleError(err, res);
     });
 };
+
+// login
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
