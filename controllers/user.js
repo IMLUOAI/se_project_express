@@ -82,6 +82,8 @@ module.exports.updateCurrentUser = async (req, res) => {
     .catch((err) => handleError(err, res));
 };
 
+// createUser
+
 module.exports.createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   if (!name || !avatar || !email || !password) {
@@ -92,9 +94,9 @@ module.exports.createUser = (req, res) => {
   User.findOne({ email })
     .then((existingUser) => {
       if (existingUser) {
-        return res
-          .status(MONGODB_DUPLICATE_ERROR)
-          .send({ message: "User already exists" });
+        const error = new Error("User already exists");
+        error.statusCode(MONGODB_DUPLICATE_ERROR);
+        throw error;
       }
       return bcrypt.hash(password, 10);
     })
@@ -115,7 +117,9 @@ module.exports.createUser = (req, res) => {
       }
     })
     .catch((err) => {
-      return handleError(err, res);
+      if (!res.headersSent) {
+        return handleError(err, res);
+      }
     });
 };
 

@@ -36,12 +36,12 @@ module.exports.createClothingItem = (req, res) => {
 // getClothingItemById
 
 module.exports.getClothingItemById = (req, res) => {
-  const { itemId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid item ID" });
   }
 
-  return ClothingItem.findById(itemId)
+  return ClothingItem.findById(id)
     .orFail(() => {
       const error = new Error("Item ID not found");
       error.statusCode = NOT_FOUND;
@@ -54,13 +54,13 @@ module.exports.getClothingItemById = (req, res) => {
 // deleteClothingItem
 
 module.exports.deleteClothingItem = (req, res) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
   const userId = req.user._id;
 
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid item ID" });
   }
-  return ClothingItem.findByIdAndRemove(itemId)
+  return ClothingItem.findByIdAndRemove(id)
     .orFail(() => {
       const error = new Error("Item  not found");
       error.statusCode = NOT_FOUND;
@@ -72,7 +72,7 @@ module.exports.deleteClothingItem = (req, res) => {
         error.statusCode = FORBIDDEN;
         throw error;
       }
-      return ClothingItem.findByIdAndRemove(itemId);
+      return ClothingItem.findByIdAndRemove(id);
     })
     .then((item) => res.status(200).send(item))
     .catch((err) => handleError(err, res));
@@ -81,14 +81,14 @@ module.exports.deleteClothingItem = (req, res) => {
 // likeClothingItem
 
 module.exports.likeClothingItem = (req, res) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(NOT_FOUND).send({ message: "Item not found" });
   }
 
   return ClothingItem.findByIdAndUpdate(
-    itemId,
+    id,
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
@@ -114,13 +114,13 @@ module.exports.likeClothingItem = (req, res) => {
 // dislikeClothingItem
 
 module.exports.dislikeClothingItem = (req, res) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid item ID" });
   }
   return ClothingItem.findByIdAndUpdate(
-    itemId,
+    id,
     { $pull: { likes: req.user._id } },
     { new: true }
   )

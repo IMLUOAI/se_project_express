@@ -27,10 +27,7 @@ module.exports.handleError = (err, res) => {
       .status(FORBIDDEN)
       .send({ message: "You are not authorized to delete the item" });
   }
-
-  if (err.statusCode === INTERNAL_SERVER_ERROR) {
-    return res
-      .status(INTERNAL_SERVER_ERROR)
-      .send({ message: "An error has occured on the server" });
-  }
+  return res
+    .status(INTERNAL_SERVER_ERROR)
+    .send({ message: "An error has occured on the server" });
 };
