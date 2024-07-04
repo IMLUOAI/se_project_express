@@ -1,11 +1,22 @@
-# WTWR (What to Wear?): Back End / postman text process
+# WTWR (What to Wear?): Back End / postman text process 2nd.
 
-Project 13 is a stage of the back-end, we start to hands off on the front-end of the WTWR, and hands on the back-end of it, which means we need to through the two main tools to build up a database for the WTWR. In particular, we will use the Express to code the mechanical system for the user and clothingitem of WTWR to connect with the APIs, and the new generated data will be organized and managed on mogooseDB
+In this Project 13, we still keeping a test work with the Postman based on the foundation of the project 12. The most core part in this stage is to center the three key steps in the entire APIs. Like the Identification, authentication, and authorization. We must to familicar know how each of the steps play a role between user and us(engineers) in the back-end. According to the specific error status code which was refelcted from the Postman. Our back-end engineer will be able to ensure the users' signup, singin, like, dislike, and delete the unlike items successfuly and smoothly. In which the validator plays a very important role.
 
-In this project 13, we had gone through the Express.js, postman, and MongoDB tools to set up the entire data infrastructure, and coding the three main parts in VSC. Like the Routes, Models, Controllers, and app.js.
-In whcih Postman is playing a role like error handling test. Any INVALID ID, NOT_FOUND, and INTERNAL_SERVER errors will be check out through this step, and this is the way for us to better know the specific reasons and where to fix it.
+In my code, I create an independent folder for the handleError, which will be more efficiency and consistenly for diagonose the various erros in actual APIs work.
 
-In this project, we also throught the ACTION button on Github to double check weather the whole process of test is complete or incomplete from postman and vsc. For instance, we can see the test errors from the postman, and it cooresponding the term: "test.endpoint" on github; And other errors from the terminal, and this part shows on github is the term: "test.config". Once they both get done in green color will mean that the project is qualified to submmit to get review.
+## The three key security steps:
+
+`Identification`
+
+`authentication`
+
+`authorization`
+
+## Three entities matters: these are the key things to limit the range for searching or validating during the singup process of API.
+
+`1. special characters: / Quantifiers{ *, +, ?, | }; \w\W, \d\D, \s\S, ^, $ /`
+`2. flags: i, m, u, y, s`
+`3. Regex Methods: string.match() or ReGex.test()`
 
 ## Running the Project
 

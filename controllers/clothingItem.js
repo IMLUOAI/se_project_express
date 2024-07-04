@@ -74,7 +74,7 @@ module.exports.deleteClothingItem = (req, res) => {
       }
       return ClothingItem.findByIdAndRemove(id);
     })
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.status(200).send({ message: "Item deleted" }))
     .catch((err) => handleError(err, res));
 };
 
