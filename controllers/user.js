@@ -117,9 +117,7 @@ module.exports.createUser = (req, res) => {
       }
     })
     .catch((err) => {
-      if (!res.headersSent) {
-        return handleError(err, res);
-      }
+      return handleError(err, res);
     });
 };
 

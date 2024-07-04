@@ -67,7 +67,7 @@ module.exports.deleteClothingItem = (req, res) => {
       throw error;
     })
     .then((item) => {
-      if (item.owner.toString() !== userId) {
+      if (item.owner.toString()) {
         const error = new Error("Forbidden");
         error.statusCode = FORBIDDEN;
         throw error;
@@ -84,7 +84,7 @@ module.exports.likeClothingItem = (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(NOT_FOUND).send({ message: "Item not found" });
+    return res.status(INVALID_ID).send({ message: "Invalid Id" });
   }
 
   return ClothingItem.findByIdAndUpdate(
@@ -98,7 +98,7 @@ module.exports.likeClothingItem = (req, res) => {
       throw error;
     })
     .then((item) => {
-      if (!item || !user._id) {
+      if (!item) {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
       return res.status(200).send({ message: "Item like was created" });
