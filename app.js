@@ -1,10 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const bodyParser = require("body-parser");
-const { NOT_FOUND, INTERNAL_SERVER_ERROR } = require("./utils/errors");
+const { NOT_FOUND } = require("./utils/errors");
 const { createUser, login } = require("./controllers/user");
 const auth = require("./middlewares/auth");
-const cors = require("cors");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -30,5 +30,5 @@ app.use((_, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is runnning on port ${PORT}`);
+  // console.log(`Server is runnning on port ${PORT}`);
 });

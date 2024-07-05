@@ -17,7 +17,7 @@ module.exports.handleError = (err, res) => {
   }
   if (
     err.statusCode === INVALID_ID ||
-    err._message === "User validation failed"
+    err.message === "User validation failed"
   ) {
     return res.status(INVALID_ID).send({ message: "Invalid ID" });
   }

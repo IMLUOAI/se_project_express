@@ -74,7 +74,14 @@ module.exports.deleteClothingItem = (req, res) => {
       }
       return ClothingItem.findByIdAndRemove(id);
     })
-    .then((item) => res.status(200).send({ message: "Item deleted" }))
+    .then((item) => {
+      if (!item) {
+        const error = new Error("Item  not found after deletion attempt");
+        error.statusCode = NOT_FOUND;
+        throw error;
+      }
+      res.status(200).send({ message: "Item deleted", data: item });
+    })
     .catch((err) => handleError(err, res));
 };
 
@@ -104,10 +111,7 @@ module.exports.likeClothingItem = (req, res) => {
       return res.status(200).send({ message: "Item like was created" });
     })
     .catch((err) => {
-      if (res.headersSent) {
-        return;
-      }
-      return handleError(err, res);
+      handleError(err, res);
     });
 };
 

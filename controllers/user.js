@@ -1,7 +1,8 @@
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const jwt = require("jsonwebtoken");
+
 const {
   INVALID_ID,
   NOT_FOUND,
@@ -58,36 +59,34 @@ module.exports.getCurrentUser = (req, res) => {
     );
 };
 
-//updateCurrentUser
+// updateCurrentUser
 
 module.exports.updateCurrentUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
-
-  const updateData = { name, avatar, email };
+  const updateData = { name, avatar, email, password };
 
   if (password) {
     try {
-      const hashedPassword = bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       updateData.password = hashedPassword;
     } catch (err) {
-      console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "Error hashing password" });
     }
   }
-
-  User.findByIdAndUpdate(req.user._id, updateData, {
-    new: true,
-    runValidators: true,
-  })
-    .then((user) => {
-      if (!user) {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      return res.status(200).send({ data: user });
-    })
-    .catch((err) => handleError(err, res));
+  try {
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: "User not found" });
+    }
+    return res.status(200).send({ data: user });
+  } catch (err) {
+    return handleError(err, res);
+  }
 };
 
 // createUser
@@ -121,12 +120,12 @@ module.exports.createUser = (req, res) => {
       if (newUser) {
         const userResponse = newUser.toObject();
         delete userResponse.password;
-        res.status(201).send({ data: userResponse });
+        return res.status(201).send({ data: userResponse });
       }
+      return null;
     })
-    .catch((err) => {
-      return handleError(err, res);
-    });
+    .catch((err) => handleError(err, res));
+  return null;
 };
 
 // login
@@ -145,8 +144,6 @@ module.exports.login = (req, res) => {
       });
       res.send({ token });
     })
-    .catch((err) => {
-      console.error("Login error:", err);
-      return res.status(UNAUTHORIZED).send({ message: err.message });
-    });
+    .catch((err) => res.status(UNAUTHORIZED).send({ message: err.message }));
+  return null;
 };
