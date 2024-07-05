@@ -13,11 +13,11 @@ module.exports.handleError = (err, res) => {
   if (err.statusCode === MONGODB_DUPLICATE_ERROR || err.code === 11000) {
     return res
       .status(MONGODB_DUPLICATE_ERROR)
-      .send({ message: "Eamil already exists" });
+      .send({ message: "Email already exists" });
   }
   if (
     err.statusCode === INVALID_ID ||
-    err.message === "User validation failed"
+    err._message === "User validation failed"
   ) {
     return res.status(INVALID_ID).send({ message: "Invalid ID" });
   }
