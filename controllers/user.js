@@ -91,56 +91,53 @@ module.exports.updateCurrentUser = async (req, res) => {
 
 // createUser
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
   if (!name || !avatar || !email || !password) {
     return res
       .status(INVALID_ID)
       .send({ message: "Name, email, password are required" });
   }
-  User.findOne({ email })
-    .then((existingUser) => {
-      if (existingUser) {
-        const error = new Error("User already exists");
-        error.statusCode = MONGODB_DUPLICATE_ERROR;
-        throw error;
-      }
-      return bcrypt.hash(password, 10);
-    })
-    .then((hashedPassword) => {
-      const newUser = new User({
-        name,
-        avatar,
-        email,
-        password: hashedPassword,
-      });
-      return newUser.save();
-    })
-    .then((newUser) => {
-      if (newUser) {
-        const userResponse = newUser.toObject();
-        delete userResponse.password;
-        return res.status(201).send({ data: userResponse });
-      }
-    })
-    .catch((err) => handleError(err, res));
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      const error = new Error("User already exists");
+      error.statusCode = MONGODB_DUPLICATE_ERROR;
+      throw error;
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      avatar,
+      email,
+      password: hashedPassword,
+    });
+    const saveUser = await newUser.save();
+    const userResponse = saveUser.toObject();
+    delete userResponse.password;
+    return res.status(201).send({ data: userResponse });
+  } catch (err) {
+    return handleError(err, res);
+  }
 };
 
 // login
 
-module.exports.login = (req, res) => {
+module.exports.login = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res
       .status(INVALID_ID)
       .send({ message: "Email and password are required" });
   }
-  User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
-      });
-      res.send({ token });
-    })
-    .catch((err) => res.status(UNAUTHORIZED).send({ message: err.message }));
+  try {
+    const user = await User.findUserByCredentials(email, password);
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    return res.send({ token });
+  } catch (err) {
+    return res.status(UNAUTHORIZED).send({ message: err.message });
+  }
 };
