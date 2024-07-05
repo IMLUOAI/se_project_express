@@ -122,10 +122,8 @@ module.exports.createUser = (req, res) => {
         delete userResponse.password;
         return res.status(201).send({ data: userResponse });
       }
-      return null;
     })
     .catch((err) => handleError(err, res));
-  return null;
 };
 
 // login
@@ -145,5 +143,4 @@ module.exports.login = (req, res) => {
       res.send({ token });
     })
     .catch((err) => res.status(UNAUTHORIZED).send({ message: err.message }));
-  return null;
 };
