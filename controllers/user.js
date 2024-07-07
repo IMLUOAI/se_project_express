@@ -12,7 +12,6 @@ const {
 const { JWT_SECRET } = require("../utils/config");
 const { handleError } = require("../utils/handleError");
 
-
 // getCurrentUser
 
 module.exports.getCurrentUser = (req, res) => {
@@ -105,9 +104,11 @@ module.exports.login = async (req, res) => {
 
     return res.send({ token });
   } catch (err) {
-    if (err.messsage === "Incorrect email or password") {
-    return res.status(UNAUTHORIZED).send({ message: err.message });
+    if (err.message === "Incorrect email or password") {
+      return res.status(UNAUTHORIZED).send({ message: err.message });
+    }
+    return res
+      .status(INTERNAL_SERVER_ERROR)
+      .send({ message: "An error has occured on the server" });
   }
-  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
-};
 };
