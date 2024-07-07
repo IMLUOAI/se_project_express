@@ -3,8 +3,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { NOT_FOUND } = require("./utils/errors");
-const { createUser, login } = require("./controllers/user");
-const auth = require("./middlewares/auth");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -18,10 +16,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post("/signin", login);
-app.post("/signup", createUser);
-app.use("/users", auth, require("./routes/user"));
-app.use("/items", auth, require("./routes/clothingItem"));
+app.use(require('./routes/index'));
 
 app.use((_, res) => {
   res.status(NOT_FOUND).json({

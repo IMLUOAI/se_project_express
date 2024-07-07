@@ -1,8 +1,6 @@
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
-
 const {
   INVALID_ID,
   NOT_FOUND,
@@ -10,37 +8,10 @@ const {
   MONGODB_DUPLICATE_ERROR,
   UNAUTHORIZED,
 } = require("../utils/errors");
+
 const { JWT_SECRET } = require("../utils/config");
 const { handleError } = require("../utils/handleError");
 
-// getUsers
-
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch(() =>
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occured on the server" })
-    );
-};
-
-// getUser
-
-module.exports.getUser = (req, res) => {
-  const { userId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(INVALID_ID).send({ message: "Invalid data passed" });
-  }
-  return User.findById(userId)
-    .orFail(() => {
-      const error = new Error("User ID not found");
-      error.statusCode = NOT_FOUND;
-      throw error;
-    })
-    .then((user) => res.status(200).json(user))
-    .catch((err) => handleError(err, res));
-};
 
 // getCurrentUser
 
@@ -62,19 +33,9 @@ module.exports.getCurrentUser = (req, res) => {
 // updateCurrentUser
 
 module.exports.updateCurrentUser = async (req, res) => {
-  const { name, avatar, email, password } = req.body;
-  const updateData = { name, avatar, email, password };
+  const { name, avatar } = req.body;
+  const updateData = { name, avatar };
 
-  if (password) {
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      updateData.password = hashedPassword;
-    } catch (err) {
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Error hashing password" });
-    }
-  }
   try {
     const user = await User.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
@@ -83,7 +44,7 @@ module.exports.updateCurrentUser = async (req, res) => {
     if (!user) {
       return res.status(NOT_FOUND).send({ message: "User not found" });
     }
-    return res.status(200).send({ data: user });
+    return res.send({ data: user });
   } catch (err) {
     return handleError(err, res);
   }
@@ -100,11 +61,13 @@ module.exports.createUser = async (req, res) => {
   }
   try {
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       const error = new Error("User already exists");
       error.statusCode = MONGODB_DUPLICATE_ERROR;
       throw error;
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -113,9 +76,11 @@ module.exports.createUser = async (req, res) => {
       email,
       password: hashedPassword,
     });
+
     const saveUser = await newUser.save();
     const userResponse = saveUser.toObject();
     delete userResponse.password;
+
     return res.status(201).send({ data: userResponse });
   } catch (err) {
     return handleError(err, res);
@@ -131,13 +96,18 @@ module.exports.login = async (req, res) => {
       .status(INVALID_ID)
       .send({ message: "Email and password are required" });
   }
+
   try {
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
+
     return res.send({ token });
   } catch (err) {
+    if (err.messsage === "Incorrect email or password") {
     return res.status(UNAUTHORIZED).send({ message: err.message });
   }
+  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occured on the server'});
+};
 };

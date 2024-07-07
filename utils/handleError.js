@@ -16,8 +16,7 @@ module.exports.handleError = (err, res) => {
       .send({ message: "Email already exists" });
   }
   if (
-    err.statusCode === INVALID_ID ||
-    err.message.includes("User validation failed")
+    err.statusCode === INVALID_ID || err.name === "ValidationError"
   ) {
     return res.status(INVALID_ID).send({ message: "Invalid ID" });
   }

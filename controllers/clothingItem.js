@@ -60,7 +60,7 @@ module.exports.deleteClothingItem = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid item ID" });
   }
-  return ClothingItem.findByIdAndRemove(id)
+  return ClothingItem.findById(id)
     .orFail(() => {
       const error = new Error("Item  not found");
       error.statusCode = NOT_FOUND;
@@ -75,11 +75,6 @@ module.exports.deleteClothingItem = (req, res) => {
       return ClothingItem.findByIdAndRemove(id);
     })
     .then((item) => {
-      if (!item) {
-        const error = new Error("Item  not found after deletion attempt");
-        error.statusCode = NOT_FOUND;
-        throw error;
-      }
       res.status(200).send({ message: "Item deleted", data: item });
     })
     .catch((err) => handleError(err, res));
@@ -87,14 +82,14 @@ module.exports.deleteClothingItem = (req, res) => {
 
 // likeClothingItem
 
-module.exports.likeClothingItem = (req, res) => {
+module.exports.likeClothingItem = async (req, res) => {
   const { id } = req.params;
-
+try {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid Id" });
   }
 
-  return ClothingItem.findByIdAndUpdate(
+  const item = await ClothingItem.findByIdAndUpdate(
     id,
     { $addToSet: { likes: req.user._id } },
     { new: true }
@@ -104,36 +99,34 @@ module.exports.likeClothingItem = (req, res) => {
       error.statusCode = NOT_FOUND;
       throw error;
     })
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      }
-      return res.status(200).send({ message: "Item like was created" });
-    })
-    .catch((err) => {
-      handleError(err, res);
-    });
+      return res.status(200).send({ message: "Item like was created", data: item });
+  }
+    catch(err) {
+      return handleError(err, res);
+    };
 };
 
 // dislikeClothingItem
 
-module.exports.dislikeClothingItem = (req, res) => {
+module.exports.dislikeClothingItem = async (req, res) => {
   const { id } = req.params;
-
+try {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(INVALID_ID).send({ message: "Invalid item ID" });
   }
-  return ClothingItem.findByIdAndUpdate(
+  const item = await ClothingItem.findByIdAndUpdate(
     id,
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      }
+     .orFail (() => {
+      const error = new Error("Item not found");
+      error.statusCode = NOT_FOUND;
+      throw error;
+     })
       return res.status(200).send(item);
-    })
-    .catch((err) => handleError(err, res));
+    }
+    catch(err) {
+      return handleError(err, res);
+    }
 };
