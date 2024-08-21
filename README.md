@@ -1,21 +1,47 @@
-## Sprint 14
+# WTWR (What to Wear?): Back End / postman text process 2nd.
 
-**Introduction of the WTWR APP** fullstack
+In this Project 13, we still keeping a test work with the Postman based on the foundation of the project 12. The most core part in this stage is to center the three key steps in the entire APIs. Like the Identification, authentication, and authorization. We must to familicar know how each of the steps play a role between user and us(engineers) in the back-end. According to the specific error status code which was refelcted from the Postman. Our back-end engineer will be able to ensure the users' signup, singin, like, dislike, and delete the unlike items successfuly and smoothly. In which the validator plays a very important role.
 
-\*In this Sprint, the whole app almost reaches its tail. Since we have well done with the se_project_express in Sprint 13, and se_project_react in Sprint 11, which are the backend and frontend accordingly. Currently, I need to set up the sign up modal and log in modal for the app to make it work on internet safely for massive users. In this case, the konwledge of the identification, authentication, and authorization will be use throughout the signup and login modal. Based on the code of the Sprint 11, I will need to add in more handle functions for the two modals, and set up the navigation for the two buttons right the header part. In particularly, the previous two buttons: "+Add Items & userName" buttons will be replaced by the two new buttons:" Sign up & Log in" respectively. Other than this, I will add another two new features in the Sidebar part, which will be the:"Change profile data, and Logout button" respectively.
+In my code, I create an independent folder for the handleError, which will be more efficiency and consistenly for diagonose the various erros in actual APIs work.
 
-\*Since the backend api and frontend api were connected through the MongoDB in this project, the previous local data.json will be deleted from the work, and new data will be fetch from the new users who sign up in the app later on. The new datas will be store in the MongoDB of each developer's. Additionaly, the clothing card now will be able to let the signed up user put "Like & dislike", and delete those dislike cards for each of them. Indeed, these features are corresponding to the identification, authentication and authorization processes in reality.
+## The three key security steps:
 
-\*The entire work had added many new handler functions and currentUserContext.provider, userNavigate, etc to improve the security and Logic, in which will deeply effect the user experience later on.
+`Identification`
+
+`authentication`
+
+`authorization`
+
+## Three entities matters: these are the key things to limit the range for searching or validating during the singup process of API.
+
+`1. special characters: / Quantifiers{ *, +, ?, | }; \w\W, \d\D, \s\S, ^, $ /`
+`2. flags: i, m, u, y, s`
+`3. Regex Methods: string.match() or ReGex.test()`
+
+## Running the Project
+
+`npm run lint`
+
+`npm run start` — to launch the server
+
+`npm run dev` — to launch the server with the hot reload feature
+
+### Error Handling Testing Tool
+
+postman
+
+### Main Coding Tools
+
+Express.js Postman, MongooseDB
+
+### Localhost
+
+http://localhost:3001;
+
+## Link for se_project_express:
+
+[github](https://github.com/IMLUOAI/se_project_express.git)
 
 ## Link for WTWR_FB(frontend & backend):
 
 [github](https://github.com/IMLUOAI/WTWR_FB.git)
-
-## Link for the WTWR_FB backend:
-
-[github](https://github.com/IMLUOAI/se_project_express.git)
-
-## Link for se_project_react:
-
-[github](https://github.com/IMLUOAI/se_project_react.git)
