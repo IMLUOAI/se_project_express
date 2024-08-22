@@ -13,10 +13,10 @@ module.exports = (req, res, next) => {
 
   try {
     payload = jwt.verify(token, JWT_SECRET);
-  } catch (Error) {
+  } catch (err) {
    return next(new UnauthorizedError("Authorization required"));
   }
 
   req.user = payload;
-  return next();
+  next();
 };
