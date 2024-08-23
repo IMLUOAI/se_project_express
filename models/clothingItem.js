@@ -3,6 +3,7 @@ const validator = require("validator");
 
 const { ObjectId } = mongoose.Schema.Types;
 
+
 const clothingItemSchema = new mongoose.Schema({
   name: {
     type: String,
