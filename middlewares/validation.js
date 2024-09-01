@@ -2,7 +2,7 @@ const { Joi, celebrate } = require('celebrate');
 const validator = require('validator');
 
 const validateURL = (value, helpers) => {
-  if (validator.isURL(value)) {
+  if (validator.isURL(value, { protocols: ['http', 'https'], require_protocol: true })) {
     return value;
   }
   return helpers.error("string.uri");
@@ -19,7 +19,7 @@ module.exports.validateUserCreation = celebrate({
 
     avatar: Joi.string().required().custom(validateURL).messages({
       "string.empty": 'The "Avatar URL" is required',
-      "string.url": 'Avatar must be valid URL',
+      "string.uri": 'Avatar must be valid URL',
     }),
 
     email: Joi.string().required().email().messages({
@@ -47,7 +47,7 @@ module.exports.validateClothingItem = celebrate({
 
     imageUrl: Joi.string().required().custom(validateURL).messages({
       "string.empty": 'The "imageUrl" field must be filled in',
-      "string.url": 'The "imageUrl" field must be valid URL',
+      "string.uri": 'The "imageUrl" field must be valid URL',
     }),
   })
 });
@@ -69,7 +69,7 @@ module.exports.validateLogin = celebrate({
 module.exports.validateId = celebrate({
   params: Joi.object().keys({
     id: Joi.string().length(24).hex().required().messages({
-      'string Length': 'ID must be 24 characters long',
+      'string.length': 'ID must be 24 characters long',
       'string.hex': 'ID must be a hexadecimal value',
     })
   }).unknown(true)
@@ -85,7 +85,7 @@ module.exports.validateUpdateProfile = celebrate({
 
     avatar: Joi.string().required().custom(validateURL).messages({
       "string.empty": 'The "Avatar URL" is required',
-      "string.url": 'Avatar must be valid URL',
+      "string.uri": 'Avatar must be valid URL',
     }),
   })
 });
