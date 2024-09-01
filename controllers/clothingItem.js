@@ -54,7 +54,7 @@ module.exports.deleteClothingItem = (req, res, next) => {
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new BadRequestError("Invalid item ID"));
-  }INVALID
+  }
   return ClothingItem.findById(id)
     .orFail(() => {
       throw  new NotFoundError("Item not found");
