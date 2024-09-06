@@ -68,7 +68,11 @@ module.exports.deleteClothingItem = (req, res, next) => {
     .then((item) => {
       res.status(200).send({ message: "Item deleted", data: item });
     })
-    .catch(next);
+    .catch((err) => {
+      console.error(`Error occurred while deleting item ${id};`, err)
+      next(err);
+    });
+
 };
 
 // likeClothingItem
