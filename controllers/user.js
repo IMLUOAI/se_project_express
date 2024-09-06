@@ -14,7 +14,7 @@ const { JWT_SECRET } = require("../utils/config");
 // getCurrentUser
 
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById({ _id: req.params.userId })
+  User.findById(req.user._id )
     .then((user) => {
       if (!user) {
         throw new NotFoundError('No user with matching ID found');
