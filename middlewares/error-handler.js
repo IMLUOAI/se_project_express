@@ -1,13 +1,13 @@
 
-const { BadInternalServerError } = require('../utils/errors')
+// const { BadInternalServerError } = require('../utils/errors')
 
 module.exports =(err, req, res, next) => {
   console.error(err);
-  const { statusCode = BadInternalServerError, message } = err;
+  const { statusCode = 500, message } = err;
   res
   .status(statusCode)
   .send({
-    message: statusCode === BadInternalServerError
+    message: statusCode === 500
     ? 'An error occured on the server'
     : message
   });
