@@ -59,7 +59,7 @@ module.exports.createUser = async (req, res, next) => {
   const { email, password, name, avatar } = req.body;
   if (!email || !password || !name || !avatar) {
     return res
-      .status(INVALID_ID)
+      .status(BadRequestError)
       .send({ message: "Name, email, password are required" });
   }
   try {
@@ -98,7 +98,7 @@ module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res
-      .status(INVALID_ID)
+      .status(BadRequestError)
       .send({ message: "Email and password are required" });
   }
 
