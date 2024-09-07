@@ -24,7 +24,7 @@ module.exports.createClothingItem = (req, res, next) => {
     .then((clothingItem) => res.status(201).send({ data: clothingItem }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new INVALID_ID("Invalid data passed"));
+        return next(new BadRequestError("Invalid data passed"));
       }
       next(err);
     });
@@ -69,7 +69,7 @@ module.exports.deleteClothingItem = (req, res, next) => {
       res.status(200).send({ message: "Item deleted", data: item });
     })
     .catch((err) => {
-      console.error(`Error occurred while deleting item ${id};`, err)
+      console.error(`Error occurred while deleting item ${id}:`, err)
       next(err);
     });
 
@@ -114,7 +114,7 @@ try {
   )
      .orFail (() => {
       const error = new Error("Item not found");
-      error.statusCode = NOT_FOUND;
+      error.statusCode = NotFoundError;
       throw new NotFoundError("item not found")
      })
       return res.status(200).send(item);

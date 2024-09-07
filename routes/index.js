@@ -9,6 +9,6 @@ router.post("/signin", validateLogin, login);
 router.post("/signup", validateUserCreation, createUser);
 
 router.use("/users", auth, require("./user"));
-router.use("/items", require("./clothingItem"));
+router.use("/items", auth, require("./clothingItem"));
 
 module.exports = router;
