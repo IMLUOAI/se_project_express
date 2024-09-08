@@ -14,6 +14,7 @@ const { JWT_SECRET } = require("../utils/config");
 // getCurrentUser
 
 module.exports.getCurrentUser = (req, res, next) => {
+  console.log('User objects from middleware:', req.user);
   User.findById(req.user._id )
     .then((user) => {
       if (!user) {
