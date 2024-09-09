@@ -14,10 +14,9 @@ module.exports = (req, res, next) => {
   console.log('Token extracted:', token);
   try {
    payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload;
-    next();
-
   } catch (err) {
    return next(new UnauthorizedError("Authorization required"));
   }
+  req.user = payload;
+  next();
 };
