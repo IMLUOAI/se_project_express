@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
   let payload;
   console.log('Token extracted:', token);
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+   payload = jwt.verify(token, JWT_SECRET);
     req.user = payload;
     next();
 
