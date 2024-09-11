@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItem");
-const { BadRequestError, NotFoundError, ForbiddenError } = require("../utils/errors");
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 // getClothingItems
 
@@ -26,7 +28,7 @@ module.exports.createClothingItem = (req, res, next) => {
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Invalid data passed"));
       }
-      next(err);
+     return next(err);
     });
 };
 
@@ -69,7 +71,6 @@ module.exports.deleteClothingItem = (req, res, next) => {
       res.status(200).send({ message: "Item deleted", data: item });
     })
     .catch((err) => {
-      console.error(`Error occurred while deleting item ${id}:`, err)
       next(err);
     });
 
@@ -95,7 +96,7 @@ try {
       return res.status(200).send({ message: "Item like was created", data: item });
   }
     catch(err) {
-      next(err);
+     return next(err);
     };
 };
 
@@ -120,6 +121,6 @@ try {
       return res.status(200).send(item);
     }
     catch(err) {
-      next(err);
+     return next(err);
     }
 };

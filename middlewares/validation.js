@@ -72,7 +72,7 @@ module.exports.validateId = celebrate({
       'string.length': 'ID must be 24 characters long',
       'string.hex': 'ID must be a hexadecimal value',
     })
-  }).unknown(true)
+  })
 })
 
 module.exports.validateUpdateProfile = celebrate({
