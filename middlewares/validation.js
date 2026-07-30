@@ -66,6 +66,24 @@ module.exports.validateLogin = celebrate({
   })
 });
 
+module.exports.validateFavorite = celebrate({
+  body: Joi.object().keys({
+    type: Joi.string().valid('photo', 'video').required().messages({
+      "any.only": 'The "type" field must be either "photo" or "video"',
+      "string.empty": 'The "type" field must be chosen',
+    }),
+
+    url: Joi.string().required().custom(validateURL).messages({
+      "string.empty": 'The "url" field must be filled in',
+      "string.uri": 'The "url" field must be a valid URL',
+    }),
+
+    title: Joi.string().allow('').max(60).messages({
+      "string.max": 'The "title" field must be 60 characters or fewer',
+    }),
+  })
+});
+
 module.exports.validateId = celebrate({
   params: Joi.object().keys({
     id: Joi.string().length(24).hex().required().messages({

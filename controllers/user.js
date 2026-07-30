@@ -13,18 +13,18 @@ const { JWT_SECRET } = require("../utils/config");
 // getCurrentUser
 
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id )
+  User.findById(req.user._id)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('No user with matching ID found');
       }
-     res.send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new BadRequestError("The id is an invalid format"));
+        return next(new BadRequestError("The id is an invalid format"));
       }
-    return next(err);
+      return next(err);
     });
 }
 // updateCurrentUser
@@ -44,7 +44,7 @@ module.exports.updateCurrentUser = async (req, res, next) => {
     return res.send({ data: user });
   } catch (err) {
     if (err.name === "ValidationError") {
-      next(new BadRequestError("Validation failed"));
+      return next(new BadRequestError("Validation failed"));
     }
     return next(err);
   }
@@ -55,9 +55,7 @@ module.exports.updateCurrentUser = async (req, res, next) => {
 module.exports.createUser = async (req, res, next) => {
   const { email, password, name, avatar } = req.body;
   if (!email || !password || !name || !avatar) {
-    return res
-      .status(BadRequestError)
-      .send({ message: "Name, email, password are required" });
+    return next(new BadRequestError("Name, email, password are required"));
   }
   try {
     const existingUser = await User.findOne({ email });
@@ -82,9 +80,12 @@ module.exports.createUser = async (req, res, next) => {
    return res.status(201).send({ data: userResponse });
   } catch (err) {
     if (err.name === "ValidationError") {
-      next(new BadRequestError("Validation failed"));
+      return next(new BadRequestError("Validation failed"));
     }
-    return  next(err);
+    if (err.code === 11000) {
+      return next(new DuplicatedMongodbError("User already exists"));
+    }
+    return next(err);
   }
 };
 
@@ -93,9 +94,7 @@ module.exports.createUser = async (req, res, next) => {
 module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res
-      .status(BadRequestError)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   try {
@@ -107,8 +106,8 @@ module.exports.login = async (req, res, next) => {
    return res.send({ token });
   } catch (err) {
     if (err.message === "Incorrect email or password") {
-      next(new UnauthorizedError(err.message));
+      return next(new UnauthorizedError(err.message));
     }
-    return next(new BadInternalServerError("An error has occured on ther server"))
+    return next(new BadInternalServerError("An error has occured on the server"));
   }
 };

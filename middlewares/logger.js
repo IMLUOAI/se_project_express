@@ -11,6 +11,7 @@ const messageFormat = winston.format.combine(
 );
 
 const requestLogger = expressWinston.logger({
+  headerBlacklist: ["authorization", "cookie"],
   transports: [
     new winston.transports.Console({
       format: messageFormat,

@@ -113,12 +113,10 @@ try {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-     .orFail (() => {
-      const error = new Error("Item not found");
-      error.statusCode = NotFoundError;
-      throw new NotFoundError("item not found")
+     .orFail(() => {
+      throw new NotFoundError("item not found");
      })
-      return res.status(200).send(item);
+      return res.status(200).send({ message: "Item like was removed", data: item });
     }
     catch(err) {
      return next(err);
