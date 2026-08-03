@@ -107,3 +107,21 @@ module.exports.validateUpdateProfile = celebrate({
     }),
   })
 });
+
+module.exports.validateGalleryLink = celebrate({
+  body: Joi.object().keys({
+    kind: Joi.string().valid('photo', 'video').required().messages({
+      "any.only": 'The "kind" field must be either "photo" or "video"',
+      "string.empty": 'The "kind" field must be chosen',
+    }),
+
+    url: Joi.string().required().custom(validateURL).messages({
+      "string.empty": 'The "url" field must be filled in',
+      "string.uri": 'The "url" field must be a valid URL',
+    }),
+
+    title: Joi.string().allow('').max(60).messages({
+      "string.max": 'The "title" field must be 60 characters or fewer',
+    }),
+  })
+});

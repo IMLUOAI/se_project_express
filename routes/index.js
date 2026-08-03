@@ -11,6 +11,7 @@ router.post("/signup", validateUserCreation, createUser);
 router.use("/users", auth, require("./user"));
 router.use("/items",  require("./clothingItem"));
 router.use("/favorites", auth, require("./favorite"));
+router.use("/gallery", auth, require("./galleryItem"));
 
 router.use((req, res, next) => {
   next(new NotFoundError('The route you are trying to access does not exist'));
