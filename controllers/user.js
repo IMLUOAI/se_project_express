@@ -27,6 +27,18 @@ module.exports.getCurrentUser = (req, res, next) => {
       return next(err);
     });
 }
+// getPublicUser (no auth — public profile card for share links / feeds).
+// Only _id, name, avatar are ever selected: email/password can never leak.
+module.exports.getPublicUser = (req, res, next) => {
+  const { id } = req.params;
+  return User.findById(id)
+    .select("_id name avatar")
+    .orFail(() => {
+      throw new NotFoundError("User not found");
+    })
+    .then((user) => res.status(200).send(user))
+    .catch(next);
+};
 // updateCurrentUser
 
 module.exports.updateCurrentUser = async (req, res, next) => {

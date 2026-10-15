@@ -125,3 +125,41 @@ module.exports.validateGalleryLink = celebrate({
     }),
   })
 });
+const objectIdString = Joi.string().length(24).hex().required().messages({
+  'string.length': 'ID must be 24 characters long',
+  'string.hex': 'ID must be a hexadecimal value',
+});
+
+module.exports.validateFit = celebrate({
+  body: Joi.object().keys({
+    items: Joi.array().items(Joi.string().length(24).hex()).min(1).max(10).required().messages({
+      "array.min": 'The "items" field must contain at least one item',
+      "array.max": 'The "items" field must contain at most 10 items',
+      "string.length": 'Each item ID must be 24 characters long',
+      "string.hex": 'Each item ID must be a hexadecimal value',
+    }),
+    weather: Joi.string().valid('hot', 'warm', 'cold').required().messages({
+      "any.only": 'The "weather" field must be one of "hot", "warm", "cold"',
+      "string.empty": 'The "weather" field must be chosen',
+    }),
+    note: Joi.string().allow('').max(140).messages({
+      "string.max": 'The "note" field must be 140 characters or fewer',
+    }),
+  })
+});
+
+module.exports.validateBattle = celebrate({
+  body: Joi.object().keys({
+    fitA: objectIdString,
+    fitB: objectIdString,
+  })
+});
+
+module.exports.validateVote = celebrate({
+  body: Joi.object().keys({
+    pick: Joi.string().valid('A', 'B').required().messages({
+      "any.only": 'The "pick" field must be either "A" or "B"',
+      "string.empty": 'The "pick" field is required',
+    }),
+  })
+});
