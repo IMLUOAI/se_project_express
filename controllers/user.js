@@ -9,6 +9,7 @@ const BadInternalServerError = require('../errors/BadInternalServerError');
 
 
 const { JWT_SECRET } = require("../utils/config");
+const { isAdultDob } = require("../utils/age");
 
 // getCurrentUser
 
@@ -18,7 +19,11 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('No user with matching ID found');
       }
-      res.send(user);
+      // The user themself may see their own dob; everyone also gets the
+      // derived isAdult flag used by the app's birthday gate.
+      const userResponse = user.toObject();
+      userResponse.isAdult = isAdultDob(user.dob);
+      res.send(userResponse);
     })
     .catch((err) => {
       if (err.name === "CastError") {
@@ -62,12 +67,38 @@ module.exports.updateCurrentUser = async (req, res, next) => {
   }
 };
 
+// updateDob — set or change the user's own date of birth (birthday gate).
+// Celebrate validation (validateDobUpdate) rejects missing/future/
+// unparseable values before this runs.
+module.exports.updateDob = async (req, res, next) => {
+  const { dob } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { dob },
+      { new: true, runValidators: true },
+    );
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    const userResponse = user.toObject();
+    userResponse.isAdult = isAdultDob(user.dob);
+    return res.send({ data: userResponse });
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      return next(new BadRequestError("Validation failed"));
+    }
+    return next(err);
+  }
+};
+
 // createUser
 
 module.exports.createUser = async (req, res, next) => {
-  const { email, password, name, avatar } = req.body;
-  if (!email || !password || !name || !avatar) {
-    return next(new BadRequestError("Name, email, password are required"));
+  const { email, password, name, avatar, dob } = req.body;
+  if (!email || !password || !name || !avatar || !dob) {
+    return next(new BadRequestError("Name, email, password, and date of birth are required"));
   }
   try {
     const existingUser = await User.findOne({ email });
@@ -83,11 +114,15 @@ module.exports.createUser = async (req, res, next) => {
       password: hashedPassword,
       name,
       avatar,
+      dob,
     });
 
     const saveUser = await newUser.save();
     const userResponse = saveUser.toObject();
     delete userResponse.password;
+    // Raw dob never leaves the server on signup — only the derived flag.
+    delete userResponse.dob;
+    userResponse.isAdult = isAdultDob(saveUser.dob);
 
    return res.status(201).send({ data: userResponse });
   } catch (err) {
@@ -115,7 +150,7 @@ module.exports.login = async (req, res, next) => {
       expiresIn: "7d",
     });
 
-   return res.send({ token });
+   return res.send({ token, isAdult: isAdultDob(user.dob) });
   } catch (err) {
     if (err.message === "Incorrect email or password") {
       return next(new UnauthorizedError(err.message));

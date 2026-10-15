@@ -32,6 +32,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
+  dob: {
+    type: Date,
+    // Optional on purpose: existing users predate the birthday gate and
+    // keep working without one (treated as not-adult until they set it).
+    validate: {
+      validator: (value) =>
+        value instanceof Date &&
+        !Number.isNaN(value.getTime()) &&
+        value.getTime() < Date.now(),
+      message: "Date of birth must be a valid date in the past",
+    },
+  },
 });
 
 userSchema.statics.findUserByCredentials = function findUserByCredentials(

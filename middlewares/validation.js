@@ -30,7 +30,14 @@ module.exports.validateUserCreation = celebrate({
     password: Joi.string().required().min(8).messages({
       "string.empty": 'Password is required',
       "string.min": 'Password must be at least 8 characters long',
-    })
+    }),
+
+    dob: Joi.date().less("now").required().messages({
+      "any.required": 'The "dob" field is required',
+      "date.base": 'The "dob" field must be a valid date',
+      "date.format": 'The "dob" field must be a valid date',
+      "date.less": 'The "dob" field must be a date in the past',
+    }),
   })
 });
 
@@ -160,6 +167,17 @@ module.exports.validateVote = celebrate({
     pick: Joi.string().valid('A', 'B').required().messages({
       "any.only": 'The "pick" field must be either "A" or "B"',
       "string.empty": 'The "pick" field is required',
+    }),
+  })
+});
+
+module.exports.validateDobUpdate = celebrate({
+  body: Joi.object().keys({
+    dob: Joi.date().less("now").required().messages({
+      "any.required": 'The "dob" field is required',
+      "date.base": 'The "dob" field must be a valid date',
+      "date.format": 'The "dob" field must be a valid date',
+      "date.less": 'The "dob" field must be a date in the past',
     }),
   })
 });

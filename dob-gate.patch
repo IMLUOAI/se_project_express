@@ -1,0 +1,209 @@
+diff --git a/controllers/user.js b/controllers/user.js
+index 4b108d2..aa42a61 100644
+--- a/controllers/user.js
++++ b/controllers/user.js
+@@ -9,6 +9,7 @@ const BadInternalServerError = require('../errors/BadInternalServerError');
+ 
+ 
+ const { JWT_SECRET } = require("../utils/config");
++const { isAdultDob } = require("../utils/age");
+ 
+ // getCurrentUser
+ 
+@@ -18,7 +19,11 @@ module.exports.getCurrentUser = (req, res, next) => {
+       if (!user) {
+         throw new NotFoundError('No user with matching ID found');
+       }
+-      res.send(user);
++      // The user themself may see their own dob; everyone also gets the
++      // derived isAdult flag used by the app's birthday gate.
++      const userResponse = user.toObject();
++      userResponse.isAdult = isAdultDob(user.dob);
++      res.send(userResponse);
+     })
+     .catch((err) => {
+       if (err.name === "CastError") {
+@@ -62,12 +67,38 @@ module.exports.updateCurrentUser = async (req, res, next) => {
+   }
+ };
+ 
++// updateDob — set or change the user's own date of birth (birthday gate).
++// Celebrate validation (validateDobUpdate) rejects missing/future/
++// unparseable values before this runs.
++module.exports.updateDob = async (req, res, next) => {
++  const { dob } = req.body;
++
++  try {
++    const user = await User.findByIdAndUpdate(
++      req.user._id,
++      { dob },
++      { new: true, runValidators: true },
++    );
++    if (!user) {
++      throw new NotFoundError("User not found");
++    }
++    const userResponse = user.toObject();
++    userResponse.isAdult = isAdultDob(user.dob);
++    return res.send({ data: userResponse });
++  } catch (err) {
++    if (err.name === "ValidationError") {
++      return next(new BadRequestError("Validation failed"));
++    }
++    return next(err);
++  }
++};
++
+ // createUser
+ 
+ module.exports.createUser = async (req, res, next) => {
+-  const { email, password, name, avatar } = req.body;
+-  if (!email || !password || !name || !avatar) {
+-    return next(new BadRequestError("Name, email, password are required"));
++  const { email, password, name, avatar, dob } = req.body;
++  if (!email || !password || !name || !avatar || !dob) {
++    return next(new BadRequestError("Name, email, password, and date of birth are required"));
+   }
+   try {
+     const existingUser = await User.findOne({ email });
+@@ -83,11 +114,15 @@ module.exports.createUser = async (req, res, next) => {
+       password: hashedPassword,
+       name,
+       avatar,
++      dob,
+     });
+ 
+     const saveUser = await newUser.save();
+     const userResponse = saveUser.toObject();
+     delete userResponse.password;
++    // Raw dob never leaves the server on signup — only the derived flag.
++    delete userResponse.dob;
++    userResponse.isAdult = isAdultDob(saveUser.dob);
+ 
+    return res.status(201).send({ data: userResponse });
+   } catch (err) {
+@@ -115,7 +150,7 @@ module.exports.login = async (req, res, next) => {
+       expiresIn: "7d",
+     });
+ 
+-   return res.send({ token });
++   return res.send({ token, isAdult: isAdultDob(user.dob) });
+   } catch (err) {
+     if (err.message === "Incorrect email or password") {
+       return next(new UnauthorizedError(err.message));
+diff --git a/middlewares/validation.js b/middlewares/validation.js
+index 5b2eb7b..b20f99c 100644
+--- a/middlewares/validation.js
++++ b/middlewares/validation.js
+@@ -30,7 +30,14 @@ module.exports.validateUserCreation = celebrate({
+     password: Joi.string().required().min(8).messages({
+       "string.empty": 'Password is required',
+       "string.min": 'Password must be at least 8 characters long',
+-    })
++    }),
++
++    dob: Joi.date().less("now").required().messages({
++      "any.required": 'The "dob" field is required',
++      "date.base": 'The "dob" field must be a valid date',
++      "date.format": 'The "dob" field must be a valid date',
++      "date.less": 'The "dob" field must be a date in the past',
++    }),
+   })
+ });
+ 
+@@ -163,3 +170,14 @@ module.exports.validateVote = celebrate({
+     }),
+   })
+ });
++
++module.exports.validateDobUpdate = celebrate({
++  body: Joi.object().keys({
++    dob: Joi.date().less("now").required().messages({
++      "any.required": 'The "dob" field is required',
++      "date.base": 'The "dob" field must be a valid date',
++      "date.format": 'The "dob" field must be a valid date',
++      "date.less": 'The "dob" field must be a date in the past',
++    }),
++  })
++});
+diff --git a/models/user.js b/models/user.js
+index 53798cf..e623c56 100644
+--- a/models/user.js
++++ b/models/user.js
+@@ -32,6 +32,18 @@ const userSchema = new mongoose.Schema({
+     required: true,
+     select: false,
+   },
++  dob: {
++    type: Date,
++    // Optional on purpose: existing users predate the birthday gate and
++    // keep working without one (treated as not-adult until they set it).
++    validate: {
++      validator: (value) =>
++        value instanceof Date &&
++        !Number.isNaN(value.getTime()) &&
++        value.getTime() < Date.now(),
++      message: "Date of birth must be a valid date in the past",
++    },
++  },
+ });
+ 
+ userSchema.statics.findUserByCredentials = function findUserByCredentials(
+diff --git a/routes/user.js b/routes/user.js
+index 3b3cb1b..cff2b4e 100644
+--- a/routes/user.js
++++ b/routes/user.js
+@@ -1,9 +1,10 @@
+ const router = require("express").Router();
+-const { getCurrentUser, updateCurrentUser } = require("../controllers/user");
+-const { validateUpdateProfile } = require('../middlewares/validation');
++const { getCurrentUser, updateCurrentUser, updateDob } = require("../controllers/user");
++const { validateUpdateProfile, validateDobUpdate } = require('../middlewares/validation');
+ 
+ 
+ router.get('/me',  getCurrentUser);
+ router.patch('/me', validateUpdateProfile, updateCurrentUser);
++router.patch('/me/dob', validateDobUpdate, updateDob);
+ 
+ module.exports = router;
+diff --git a/utils/age.js b/utils/age.js
+new file mode 100644
+index 0000000..19c7adb
+--- /dev/null
++++ b/utils/age.js
+@@ -0,0 +1,36 @@
++/**
++ * Age-gating helpers for the DripCast birthday gate.
++ *
++ * Adulthood here means 17+ (the app's App Store age rating). All
++ * comparisons use UTC calendar dates so the result never shifts with the
++ * server's local timezone.
++ */
++
++const ADULT_AGE = 17;
++
++/**
++ * Returns true when `dob` (a Date, date string, or timestamp) makes the
++ * person at least 17 years old today. Missing or unparseable values are
++ * treated as NOT adult — the safe default for users who never set a DOB.
++ */
++function isAdultDob(dob) {
++  if (!dob) return false;
++  const birth = dob instanceof Date ? dob : new Date(dob);
++  if (Number.isNaN(birth.getTime())) return false;
++
++  const now = new Date();
++  // Latest birthdate (UTC) that is still 17+ today.
++  const cutoff = Date.UTC(
++    now.getUTCFullYear() - ADULT_AGE,
++    now.getUTCMonth(),
++    now.getUTCDate(),
++  );
++  const birthDay = Date.UTC(
++    birth.getUTCFullYear(),
++    birth.getUTCMonth(),
++    birth.getUTCDate(),
++  );
++  return birthDay <= cutoff;
++}
++
++module.exports = { isAdultDob, ADULT_AGE };
