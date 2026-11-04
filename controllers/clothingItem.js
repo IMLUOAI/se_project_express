@@ -15,14 +15,14 @@ module.exports.getClothingItems = (req, res, next) => {
 // createClothingItem
 
 module.exports.createClothingItem = (req, res, next) => {
-  const { name, weather, imageUrl } = req.body;
+  const { name, weather, imageUrl, brand } = req.body;
   const owner = req.user._id;
 
   if (!name || !weather || !imageUrl) {
     return next(new BadRequestError("name, weather, and imageUrl are required"));
   }
 
-  return ClothingItem.create({ name, weather, imageUrl, owner })
+  return ClothingItem.create({ name, weather, imageUrl, brand: typeof brand === "string" && brand.trim() ? brand.trim() : undefined, owner })
     .then((clothingItem) => res.status(201).send({ data: clothingItem }))
     .catch((err) => {
       if (err.name === "ValidationError") {

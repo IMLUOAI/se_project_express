@@ -56,6 +56,7 @@ module.exports.validateClothingItem = celebrate({
       "string.empty": 'The "imageUrl" field must be filled in',
       "string.uri": 'The "imageUrl" field must be valid URL',
     }),
+    brand: Joi.string().max(30),
   })
 });
 
