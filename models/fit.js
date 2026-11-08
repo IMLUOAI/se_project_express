@@ -30,6 +30,11 @@ const fitSchema = new mongoose.Schema({
       default: [],
     },
   ],
+  /** Denormalized comment count, kept in sync by the comment controller. */
+  commentCount: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

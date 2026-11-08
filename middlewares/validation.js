@@ -182,3 +182,59 @@ module.exports.validateDobUpdate = celebrate({
     }),
   })
 });
+
+const validateOptionalURL = (value, helpers) => {
+  if (value === "" || value === undefined) return value;
+  return validateURL(value, helpers);
+};
+
+module.exports.validateComment = celebrate({
+  body: Joi.object().keys({
+    targetType: Joi.string().valid("fit", "post").required().messages({
+      "any.only": 'The "targetType" field must be either "fit" or "post"',
+      "string.empty": 'The "targetType" field is required',
+    }),
+    targetId: objectIdString,
+    text: Joi.string().trim().min(1).max(500).required().messages({
+      "string.empty": 'The "text" field must be filled in',
+      "string.min": 'The "text" field must be filled in',
+      "string.max": 'The "text" field must be 500 characters or fewer',
+    }),
+  }),
+});
+
+module.exports.validateCommentList = celebrate({
+  query: Joi.object().keys({
+    targetType: Joi.string().valid("fit", "post").required().messages({
+      "any.only": 'The "targetType" field must be either "fit" or "post"',
+    }),
+    targetId: objectIdString,
+    limit: Joi.number().integer().min(1).max(50),
+    page: Joi.number().integer().min(1),
+  }),
+});
+
+module.exports.validatePost = celebrate({
+  body: Joi.object().keys({
+    shelfType: Joi.string().valid("book", "song", "other").required().messages({
+      "any.only": 'The "shelfType" field must be one of "book", "song", "other"',
+      "string.empty": 'The "shelfType" field is required',
+    }),
+    title: Joi.string().trim().min(1).max(120).required().messages({
+      "string.empty": 'The "title" field must be filled in',
+      "string.max": 'The "title" field must be 120 characters or fewer',
+    }),
+    creator: Joi.string().allow("").max(60).messages({
+      "string.max": 'The "creator" field must be 60 characters or fewer',
+    }),
+    coverUrl: Joi.string().allow("").custom(validateOptionalURL).messages({
+      "string.uri": 'The "coverUrl" field must be a valid URL',
+    }),
+    url: Joi.string().allow("").custom(validateOptionalURL).messages({
+      "string.uri": 'The "url" field must be a valid URL',
+    }),
+    note: Joi.string().allow("").max(280).messages({
+      "string.max": 'The "note" field must be 280 characters or fewer',
+    }),
+  }),
+});

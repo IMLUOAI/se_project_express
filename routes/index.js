@@ -18,6 +18,8 @@ router.use("/favorites", auth, require("./favorite"));
 router.use("/gallery", auth, require("./galleryItem"));
 router.use("/fits", require("./fit"));
 router.use("/battles", require("./battle"));
+router.use("/comments", require("./comment"));
+router.use("/posts", require("./post"));
 
 router.use((req, res, next) => {
   next(new NotFoundError('The route you are trying to access does not exist'));
