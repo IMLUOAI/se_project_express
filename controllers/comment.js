@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Comment = require("../models/comment");
 const Fit = require("../models/fit");
 const Post = require("../models/post");
+const GalleryItem = require("../models/galleryItem");
 const BadRequestError = require("../errors/BadRequestError");
 const NotFoundError = require("../errors/NotFoundError");
 const ForbiddenError = require("../errors/ForbiddenError");
@@ -11,27 +12,35 @@ const { parsePagination } = require("../utils/pagination");
 // without extra fetches.
 const commentPopulate = [{ path: "author", select: "_id name avatar" }];
 
-// Resolve the thing being commented on (a fit or a shelf post) so delete
-// rights and the comment counter can be checked against its owner.
+// Resolve the thing being commented on (a fit, a shelf post, or an album
+// photo) so delete rights and the comment counter can be checked against
+// its owner.
 async function findTarget(targetType, targetId) {
   if (targetType === "fit") return Fit.findById(targetId);
+  if (targetType === "gallery") return GalleryItem.findById(targetId);
   return Post.findById(targetId);
 }
 
+function modelFor(targetType) {
+  if (targetType === "fit") return Fit;
+  if (targetType === "gallery") return GalleryItem;
+  return Post;
+}
+
 async function bumpCount(targetType, targetId, delta) {
-  const Model = targetType === "fit" ? Fit : Post;
+  const Model = modelFor(targetType);
   const filter = { _id: targetId };
   if (delta < 0) filter.commentCount = { $gt: 0 };
   await Model.findOneAndUpdate(filter, { $inc: { commentCount: delta } });
 }
 
-// getComments (public). Query: ?targetType=fit|post&targetId=<id>&limit=&page=
+// getComments (public). Query: ?targetType=fit|post|gallery&targetId=<id>&limit=&page=
 // Oldest first — a comment thread reads top to bottom.
 module.exports.getComments = (req, res, next) => {
   const { targetType, targetId } = req.query;
   const { limit, page } = parsePagination(req.query);
-  if (targetType !== "fit" && targetType !== "post") {
-    return next(new BadRequestError("targetType must be fit or post"));
+  if (targetType !== "fit" && targetType !== "post" && targetType !== "gallery") {
+    return next(new BadRequestError("targetType must be fit, post or gallery"));
   }
   if (!mongoose.Types.ObjectId.isValid(targetId)) {
     return next(new BadRequestError("Invalid target ID"));

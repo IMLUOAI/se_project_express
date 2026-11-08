@@ -37,6 +37,24 @@ const galleryItemSchema = new mongoose.Schema({
     maxlength: 60,
     default: "",
   },
+  /** Public items show in the Discover feed, where others can like and
+   * comment. Private by default — albums stay personal unless shared. */
+  isPublic: {
+    type: Boolean,
+    default: false,
+  },
+  likes: [
+    {
+      type: ObjectId,
+      ref: "User",
+      default: [],
+    },
+  ],
+  /** Denormalized comment count, kept in sync by the comment controller. */
+  commentCount: {
+    type: Number,
+    default: 0,
+  },
   owner: {
     type: ObjectId,
     ref: "User",

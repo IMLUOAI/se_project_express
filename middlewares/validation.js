@@ -190,8 +190,8 @@ const validateOptionalURL = (value, helpers) => {
 
 module.exports.validateComment = celebrate({
   body: Joi.object().keys({
-    targetType: Joi.string().valid("fit", "post").required().messages({
-      "any.only": 'The "targetType" field must be either "fit" or "post"',
+    targetType: Joi.string().valid("fit", "post", "gallery").required().messages({
+      "any.only": 'The "targetType" field must be either "fit", "post" or "gallery"',
       "string.empty": 'The "targetType" field is required',
     }),
     targetId: objectIdString,
@@ -205,12 +205,21 @@ module.exports.validateComment = celebrate({
 
 module.exports.validateCommentList = celebrate({
   query: Joi.object().keys({
-    targetType: Joi.string().valid("fit", "post").required().messages({
-      "any.only": 'The "targetType" field must be either "fit" or "post"',
+    targetType: Joi.string().valid("fit", "post", "gallery").required().messages({
+      "any.only": 'The "targetType" field must be either "fit", "post" or "gallery"',
     }),
     targetId: objectIdString,
     limit: Joi.number().integer().min(1).max(50),
     page: Joi.number().integer().min(1),
+  }),
+});
+
+module.exports.validateGalleryVisibility = celebrate({
+  body: Joi.object().keys({
+    isPublic: Joi.boolean().required().messages({
+      "any.required": 'The "isPublic" field is required',
+      "boolean.base": 'The "isPublic" field must be true or false',
+    }),
   }),
 });
 

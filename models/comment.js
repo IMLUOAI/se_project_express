@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema.Types;
 
 const commentSchema = new mongoose.Schema({
-  /** What is being commented on: a fit or a shelf post. */
+  /** What is being commented on: a fit, a shelf post, or an album photo. */
   targetType: {
     type: String,
     required: true,
-    enum: ["fit", "post"],
+    enum: ["fit", "post", "gallery"],
   },
   targetId: {
     type: ObjectId,
