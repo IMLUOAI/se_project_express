@@ -18,12 +18,12 @@ module.exports.getGalleryItems = (req, res, next) => {
     .catch(next);
 };
 
-// getPublicGalleryItems (auth, signed-in users only). Public album photos
-// from OTHER users, newest first — the Discover feed. Own items are
-// excluded; they live under GET /gallery.
+// getPublicGalleryItems (auth, signed-in users only). All public album
+// photos, newest first — the Discover feed. Own public photos are included
+// too, so the feed is not bare while the user is the only one sharing.
 module.exports.getPublicGalleryItems = (req, res, next) => {
   const { limit, page } = parsePagination(req.query);
-  return GalleryItem.find({ isPublic: true, owner: { $ne: req.user._id } })
+  return GalleryItem.find({ isPublic: true })
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit)
